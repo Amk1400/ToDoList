@@ -1,15 +1,8 @@
-from managers import ProjectManager
+from managers import ProjectManager, Project
 
 
 def run_main_menu(project_manager: ProjectManager) -> None:
-    """Display and control the main menu.
-
-    Args:
-        project_manager (ProjectManager): Injected project manager instance.
-
-    Returns:
-        None
-    """
+    """Display and control the main menu."""
     while True:
         print("\n--- MAIN MENU ---")
         print("1. Manage Projects")
@@ -26,21 +19,15 @@ def run_main_menu(project_manager: ProjectManager) -> None:
 
 
 def show_projects_menu(project_manager: ProjectManager) -> None:
-    """Display and control the project management menu.
-
-    Args:
-        project_manager (ProjectManager): Injected project manager instance.
-
-    Returns:
-        None
-    """
+    """Display and control the project management menu."""
     while True:
         print("\n--- PROJECTS MENU ---")
         print("1. View All Projects")
         print("2. Add New Project")
         print("3. Rename Project")
         print("4. Delete Project")
-        print("5. Back to Main Menu")
+        print("5. Manage Project Tasks")
+        print("6. Back to Main Menu")
 
         choice = input("Enter your choice: ").strip()
 
@@ -53,20 +40,15 @@ def show_projects_menu(project_manager: ProjectManager) -> None:
         elif choice == "4":
             _handle_delete_project(project_manager)
         elif choice == "5":
+            _handle_manage_tasks(project_manager)
+        elif choice == "6":
             break
         else:
             print("Invalid choice. Please try again.")
 
 
 def _display_projects(project_manager: ProjectManager) -> None:
-    """Show list of all projects.
-
-    Args:
-        project_manager (ProjectManager): Manager instance.
-
-    Returns:
-        None
-    """
+    """Show list of all projects."""
     projects = project_manager.get_all_projects()
     if not projects:
         print("No projects available.")
@@ -77,18 +59,7 @@ def _display_projects(project_manager: ProjectManager) -> None:
 
 
 def _handle_add_project(project_manager: ProjectManager) -> None:
-    """Add a new project through user input.
-
-    Args:
-        project_manager (ProjectManager): Manager instance.
-
-    Returns:
-        None
-
-    Raises:
-        ValueError: If input validation fails.
-        OverflowError: If project limit exceeded.
-    """
+    """Add a new project through user input."""
     name = input("Enter project name: ").strip()
     description = input("Enter project description: ").strip()
     try:
@@ -101,18 +72,7 @@ def _handle_add_project(project_manager: ProjectManager) -> None:
 
 
 def _handle_rename_project(project_manager: ProjectManager) -> None:
-    """Rename a project through user input.
-
-    Args:
-        project_manager (ProjectManager): Manager instance.
-
-    Returns:
-        None
-
-    Raises:
-        ValueError: If name invalid or not unique.
-        IndexError: If invalid index provided.
-    """
+    """Rename a project through user input."""
     _display_projects(project_manager)
     if not project_manager.get_all_projects():
         return
@@ -128,17 +88,7 @@ def _handle_rename_project(project_manager: ProjectManager) -> None:
 
 
 def _handle_delete_project(project_manager: ProjectManager) -> None:
-    """Delete a project through user input.
-
-    Args:
-        project_manager (ProjectManager): Manager instance.
-
-    Returns:
-        None
-
-    Raises:
-        IndexError: If invalid project index given.
-    """
+    """Delete a project through user input."""
     _display_projects(project_manager)
     if not project_manager.get_all_projects():
         return
@@ -150,3 +100,30 @@ def _handle_delete_project(project_manager: ProjectManager) -> None:
         print("Invalid input, please enter a number.")
     except IndexError as e:
         print(f"Selection error: {e}")
+
+
+def _handle_manage_tasks(project_manager: ProjectManager) -> None:
+    """Ask user to select a project for task management."""
+    projects = project_manager.get_all_projects()
+    if not projects:
+        print("No projects available to manage tasks.")
+        return
+
+    print("\nSelect a project to manage its tasks:")
+    _display_projects(project_manager)
+
+    try:
+        index = int(input("Enter project number: ")) - 1
+        selected_project = projects[index]
+        print(f"You selected: {selected_project.name}")
+        _open_task_management_menu(selected_project)
+    except ValueError:
+        print("Invalid input, please enter a number.")
+    except IndexError:
+        print("Invalid project selection.")
+
+
+def _open_task_management_menu(project: Project) -> None:
+    """Open the task management menu for a specific project."""
+    print(f"\n--- TASK MANAGEMENT for {project.name} ---")
+    pass #it returns main menu

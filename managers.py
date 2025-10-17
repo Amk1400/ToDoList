@@ -65,10 +65,6 @@ class ProjectManager:
         stripped = name.strip()
         if not stripped:
             raise ValueError("Project name cannot be empty.")
-        if len(stripped) < self._max_name_length:
-            raise ValueError(
-                f"Project name must be at least {self._max_name_length} characters long."
-            )
         if len(stripped) > self._max_name_length:
             raise ValueError(
                 f"Project name cannot exceed {self._max_name_length} characters."
@@ -79,10 +75,6 @@ class ProjectManager:
         stripped = description.strip()
         if not stripped:
             raise ValueError("Project description cannot be empty.")
-        if len(stripped) < self._max_description_length:
-            raise ValueError(
-                f"Project description must be at least {self._max_description_length} characters long."
-            )
         if len(stripped) > self._max_description_length:
             raise ValueError(
                 f"Project description cannot exceed {self._max_description_length} characters."

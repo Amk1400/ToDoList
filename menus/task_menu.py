@@ -28,7 +28,7 @@ class TaskMenu(BaseMenu):
         self.add_option("5", self._go_back)
 
     def _view_tasks(self) -> None:
-        """Display all tasks within the current project.
+        """View tasks.
 
         Raises:
             Exception: If task list retrieval fails unexpectedly.
@@ -40,7 +40,7 @@ class TaskMenu(BaseMenu):
             print(f"{i}. {task.detail.title} [{task.status}] - {task.detail.description}")
 
     def _add_task(self) -> None:
-        """Add a new task to the current project.
+        """Add task.
 
         Raises:
             ValueError: If task title or description is invalid.
@@ -55,7 +55,7 @@ class TaskMenu(BaseMenu):
             print(f"Error: {e}")
 
     def _update_task(self) -> None:
-        """Update task details or status within the current project.
+        """Edit Task.
 
         Raises:
             IndexError: If selected task index is invalid.
@@ -73,7 +73,7 @@ class TaskMenu(BaseMenu):
             print(f"Error: {e}")
 
     def _delete_task(self) -> None:
-        """Remove a task from the current project.
+        """Remove task.
 
         Raises:
             IndexError: If selected task index is invalid.

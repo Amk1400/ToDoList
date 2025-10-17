@@ -29,7 +29,7 @@ class ProjectMenu(BaseMenu):
         self.add_option("6", self._go_back)
 
     def _view_projects(self) -> None:
-        """Display all available projects."""
+        """View projects."""
         projects: List[Project] = self._project_manager.get_all_projects()
         if not projects:
             print("No projects available.")
@@ -38,7 +38,7 @@ class ProjectMenu(BaseMenu):
             print(f"{index}. {project.detail.title} - {project.detail.description}")
 
     def _create_project(self) -> None:
-        """Prompt user for project details and create a new project.
+        """create a project.
 
         Raises:
             Exception: If project creation fails due to validation or capacity limits.
@@ -53,7 +53,7 @@ class ProjectMenu(BaseMenu):
             print(f"❌ Error: {error}")
 
     def _rename_project(self) -> None:
-        """Rename an existing project.
+        """Rename project.
 
         Raises:
             Exception: If project index is invalid or update fails.
@@ -70,7 +70,7 @@ class ProjectMenu(BaseMenu):
             print(f"❌ Error: {error}")
 
     def _delete_project(self) -> None:
-        """Delete a project by user selection.
+        """Delete project.
 
         Raises:
             Exception: If project index is invalid or deletion fails.
@@ -84,7 +84,7 @@ class ProjectMenu(BaseMenu):
             print(f"❌ Error: {error}")
 
     def _open_task_menu(self) -> None:
-        """Open the task management menu for a selected project.
+        """task management menu.
 
         Raises:
             Exception: If project selection or task menu initialization fails.

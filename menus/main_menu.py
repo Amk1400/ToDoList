@@ -22,7 +22,7 @@ class MainMenu(BaseMenu):
         self.add_option("2", self._exit_program)
 
     def _open_project_menu(self) -> None:
-        """Navigate to the project management menu.
+        """project menu.
 
         Raises:
             Exception: If the project menu fails to open.
@@ -33,7 +33,7 @@ class MainMenu(BaseMenu):
             print(f"❌ Error while opening project menu: {error}")
 
     def _exit_program(self) -> None:
-        """Exit the application safely.
+        """Exit.
 
         Effects:
             Stops the main menu loop and terminates the program.

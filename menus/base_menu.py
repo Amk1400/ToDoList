@@ -48,7 +48,7 @@ class BaseMenu(ABC):
                 print("⚠ Invalid choice. Please try again.")
 
     def _go_back(self) -> None:
-        """Return to the previous (parent) menu if available."""
+        """Previous menu."""
         self._is_running = False
         if self._parent_menu:
             print("\n↩ Returning to previous menu...")

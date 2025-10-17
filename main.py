@@ -6,7 +6,11 @@ from menus.main_menu import MainMenu
 
 
 def main() -> None:
-    """Application entry point."""
+    """Run the ToDo List application.
+
+    Loads environment variables, initializes application configuration and
+    dependencies, and starts the main menu loop.
+    """
     load_dotenv()
 
     config = AppConfig(
@@ -18,8 +22,8 @@ def main() -> None:
         max_task_description_length=int(os.getenv("MAX_TASK_DESCRIPTION_LENGTH", "150")),
     )
 
-    project_manager = ProjectManager(config)
-    main_menu = MainMenu(project_manager)
+    project_manager: ProjectManager = ProjectManager(config)
+    main_menu: MainMenu = MainMenu(project_manager)
     main_menu.run()
 
 

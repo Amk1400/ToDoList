@@ -7,10 +7,16 @@ class TaskMenu(BaseMenu):
     """Menu for managing tasks inside a project."""
 
     def __init__(self, task_manager: TaskManager, project: Project, parent_menu: BaseMenu) -> None:
-        """Initialize task menu."""
+        """Initialize the task menu.
+
+        Args:
+            task_manager (TaskManager): Manager responsible for task operations.
+            project (Project): The project that contains the tasks.
+            parent_menu (BaseMenu): Reference to the parent menu.
+        """
         super().__init__(f"Task Management for {project.detail.title}", parent_menu)
-        self._task_manager = task_manager
-        self._project = project
+        self._task_manager: TaskManager = task_manager
+        self._project: Project = project
         self._setup_options()
 
     def _setup_options(self) -> None:
@@ -22,7 +28,11 @@ class TaskMenu(BaseMenu):
         self.add_option("5", self._go_back)
 
     def _view_tasks(self) -> None:
-        """View tasks."""
+        """Display all tasks within the current project.
+
+        Raises:
+            Exception: If task list retrieval fails unexpectedly.
+        """
         if not self._project.tasks:
             print("No tasks available.")
             return
@@ -30,7 +40,12 @@ class TaskMenu(BaseMenu):
             print(f"{i}. {task.detail.title} [{task.status}] - {task.detail.description}")
 
     def _add_task(self) -> None:
-        """Add task."""
+        """Add a new task to the current project.
+
+        Raises:
+            ValueError: If task title or description is invalid.
+            OverflowError: If task limit is exceeded.
+        """
         title = input("Enter task title: ").strip()
         description = input("Enter task description: ").strip()
         try:
@@ -40,7 +55,12 @@ class TaskMenu(BaseMenu):
             print(f"Error: {e}")
 
     def _update_task(self) -> None:
-        """Update task."""
+        """Update task details or status within the current project.
+
+        Raises:
+            IndexError: If selected task index is invalid.
+            ValueError: If provided data is invalid.
+        """
         self._view_tasks()
         try:
             index = int(input("Enter task number: ")) - 1
@@ -53,7 +73,11 @@ class TaskMenu(BaseMenu):
             print(f"Error: {e}")
 
     def _delete_task(self) -> None:
-        """Delete task."""
+        """Remove a task from the current project.
+
+        Raises:
+            IndexError: If selected task index is invalid.
+        """
         self._view_tasks()
         try:
             index = int(input("Enter task number: ")) - 1

@@ -4,20 +4,36 @@ from typing import List
 
 @dataclass
 class Detail:
-    """Represents title and description pair."""
+    """Represents an entity's metadata containing a title and description.
+
+    Attributes:
+        title (str): The name or title of the entity.
+        description (str): A short descriptive text about the entity.
+    """
     title: str
     description: str
 
 
 @dataclass
 class Task:
-    """Represents a single task."""
+    """Represents a single task within a project.
+
+    Attributes:
+        detail (Detail): The task's metadata containing title and description.
+        status (str): The current task status; defaults to "todo".
+            Possible values: "todo", "doing", "done".
+    """
     detail: Detail
     status: str = "todo"
 
 
 @dataclass
 class Project:
-    """Represents a project containing multiple tasks."""
+    """Represents a project that can contain multiple tasks.
+
+    Attributes:
+        detail (Detail): The project's metadata containing title and description.
+        tasks (List[Task]): A list of tasks belonging to this project.
+    """
     detail: Detail
     tasks: List[Task] = field(default_factory=list)

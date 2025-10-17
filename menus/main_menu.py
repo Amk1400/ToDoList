@@ -1,26 +1,27 @@
-from menus.project_menu import ProjectMenu
 from managers.project_manager import ProjectManager
+from menus.base_menu import BaseMenu
+from menus.project_menu import ProjectMenu
 
 
-class MainMenu:
-    """Handles main menu interactions."""
+class MainMenu(BaseMenu):
+    """Main menu for managing projects and tasks."""
 
     def __init__(self, project_manager: ProjectManager) -> None:
-        """Initialize with dependency injection."""
-        self._project_menu = ProjectMenu(project_manager)
+        """Initialize main menu with dependencies."""
+        super().__init__("Main Menu")
+        self._project_manager = project_manager
+        self._setup_options()
 
-    def run(self) -> None:
-        """Run main menu loop."""
-        while True:
-            print("\n--- MAIN MENU ---")
-            print("1. Manage Projects")
-            print("2. Exit")
+    def _setup_options(self) -> None:
+        """Define menu options."""
+        self.add_option("1", self._open_project_menu)
+        self.add_option("2", self._exit_program)
 
-            choice = input("Choose an option: ").strip()
-            if choice == "1":
-                self._project_menu.run()
-            elif choice == "2":
-                print("Goodbye!")
-                break
-            else:
-                print("Invalid choice.")
+    def _open_project_menu(self) -> None:
+        """Open project management menu."""
+        ProjectMenu(self._project_manager, parent_menu=self).run()
+
+    def _exit_program(self) -> None:
+        """Exit program."""
+        self._is_running = False
+        print("Exiting application...")

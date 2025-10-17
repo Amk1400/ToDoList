@@ -1,11 +1,12 @@
 import os
 from dotenv import load_dotenv
-from managers.project_manager import ProjectManager
 from config import AppConfig
-import menu_manager
+from managers.project_manager import ProjectManager
+from menus.main_menu import MainMenu
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Application entry point."""
     load_dotenv()
 
     config = AppConfig(
@@ -18,4 +19,9 @@ if __name__ == "__main__":
     )
 
     project_manager = ProjectManager(config)
-    menu_manager.run_main_menu(project_manager)
+    main_menu = MainMenu(project_manager)
+    main_menu.run()
+
+
+if __name__ == "__main__":
+    main()

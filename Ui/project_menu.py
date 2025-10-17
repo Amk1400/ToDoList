@@ -1,8 +1,8 @@
 from typing import List
 from models import Detail, Project
-from managers.project_manager import ProjectManager
-from menus.base_menu import BaseMenu
-from menus.task_menu import TaskMenu
+from Logic.project_manager import ProjectManager
+from Ui.base_menu import BaseMenu
+from Ui.task_menu import TaskMenu
 
 
 class ProjectMenu(BaseMenu):

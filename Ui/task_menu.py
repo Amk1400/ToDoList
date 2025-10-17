@@ -1,6 +1,6 @@
-from managers.task_manager import TaskManager
+from Logic.task_manager import TaskManager
 from models import Detail, Project
-from menus.base_menu import BaseMenu
+from Ui.base_menu import BaseMenu
 
 
 class TaskMenu(BaseMenu):

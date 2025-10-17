@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import date
 from typing import List
 
 
@@ -20,10 +21,12 @@ class Task:
 
     Attributes:
         detail (Detail): The task's metadata containing title and description.
+        deadline (date):
         status (str): The current task status; defaults to "todo".
             Possible values: "todo", "doing", "done".
     """
     detail: Detail
+    deadline: date
     status: str = "todo"
 
 

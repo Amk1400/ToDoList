@@ -1,3 +1,4 @@
+from datetime import datetime
 from managers.task_manager import TaskManager
 from models import Detail, Project
 from menus.base_menu import BaseMenu
@@ -7,16 +8,16 @@ class TaskMenu(BaseMenu):
     """Menu for managing tasks inside a project."""
 
     def __init__(self, task_manager: TaskManager, project: Project, parent_menu: BaseMenu) -> None:
-        """Initialize the task menu.
+        """Initialize task menu.
 
         Args:
-            task_manager (TaskManager): Manager responsible for task operations.
-            project (Project): The project that contains the tasks.
-            parent_menu (BaseMenu): Reference to the parent menu.
+            task_manager (TaskManager): Task manager instance.
+            project (Project): Target project.
+            parent_menu (BaseMenu): Parent menu reference.
         """
-        super().__init__(f"Task Management for {project.detail.title}", parent_menu)
-        self._task_manager: TaskManager = task_manager
-        self._project: Project = project
+        super().__init__(f"Task Menu: {project.detail.title}", parent_menu)
+        self._task_manager = task_manager
+        self._project = project
         self._setup_options()
 
     def _setup_options(self) -> None:
@@ -28,56 +29,44 @@ class TaskMenu(BaseMenu):
         self.add_option("5", self._go_back)
 
     def _view_tasks(self) -> None:
-        """View tasks.
-
-        Raises:
-            Exception: If task list retrieval fails unexpectedly.
-        """
+        """View tasks."""
         if not self._project.tasks:
             print("No tasks available.")
             return
         for i, task in enumerate(self._project.tasks, start=1):
-            print(f"{i}. {task.detail.title} [{task.status}] - {task.detail.description}")
+            print(f"{i}. {task.detail.title} [{task.status}] - {task.detail.description} (Due: {task.deadline})")
 
     def _add_task(self) -> None:
-        """Add task.
-
-        Raises:
-            ValueError: If task title or description is invalid.
-            OverflowError: If task limit is exceeded.
-        """
-        title = input("Enter task title: ").strip()
-        description = input("Enter task description: ").strip()
+        """Add task."""
         try:
-            self._task_manager.add_task(self._project, Detail(title=title, description=description))
+            title = input("Enter task title: ").strip()
+            description = input("Enter task description: ").strip()
+            deadline_str = input("Enter deadline (YYYY-MM-DD): ").strip()
+            deadline = datetime.strptime(deadline_str, "%Y-%m-%d").date()
+            self._task_manager.add_task(self._project, Detail(title, description), deadline)
             print("Task added successfully.")
         except Exception as e:
             print(f"Error: {e}")
 
     def _update_task(self) -> None:
-        """Edit Task.
-
-        Raises:
-            IndexError: If selected task index is invalid.
-            ValueError: If provided data is invalid.
-        """
+        """Update task."""
         self._view_tasks()
         try:
             index = int(input("Enter task number: ")) - 1
             title = input("Enter new title: ").strip()
             description = input("Enter new description: ").strip()
+            deadline_str = input("Enter new deadline (YYYY-MM-DD): ").strip()
+            deadline = datetime.strptime(deadline_str, "%Y-%m-%d").date()
             status = input("Enter new status (todo/doing/done): ").strip()
-            self._task_manager.update_task(self._project, index, Detail(title, description), status)
+            self._task_manager.update_task(
+                self._project, index, Detail(title, description), deadline, status
+            )
             print("Task updated successfully.")
         except Exception as e:
             print(f"Error: {e}")
 
     def _delete_task(self) -> None:
-        """Remove task.
-
-        Raises:
-            IndexError: If selected task index is invalid.
-        """
+        """Delete task."""
         self._view_tasks()
         try:
             index = int(input("Enter task number: ")) - 1

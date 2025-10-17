@@ -1,3 +1,4 @@
+from models import Detail
 from managers import ProjectManager, Project
 
 
@@ -54,21 +55,20 @@ def _display_projects(project_manager: ProjectManager) -> None:
         print("No projects available.")
         return
     for idx, project in enumerate(projects, start=1):
-        print(f"{idx}. {project.name}")
-        print(f"   {project.description[:80]}...")
+        print(f"{idx}. {project.detail.title}")
+        print(f"   {project.detail.description[:80]}...")
 
 
 def _handle_add_project(project_manager: ProjectManager) -> None:
     """Add a new project through user input."""
-    name = input("Enter project name: ").strip()
+    title = input("Enter project title: ").strip()
     description = input("Enter project description: ").strip()
+    detail = Detail(title=title, description=description)
     try:
-        project_manager.create_project(name, description)
+        project_manager.create_project(detail)
         print("Project created successfully.")
-    except ValueError as e:
-        print(f"Validation error: {e}")
-    except OverflowError as e:
-        print(f"Limit error: {e}")
+    except (ValueError, OverflowError) as e:
+        print(f"Error: {e}")
 
 
 def _handle_rename_project(project_manager: ProjectManager) -> None:
@@ -78,13 +78,11 @@ def _handle_rename_project(project_manager: ProjectManager) -> None:
         return
     try:
         index = int(input("Enter project number to rename: ")) - 1
-        new_name = input("Enter new project name: ").strip()
-        project_manager.update_project_name(index, new_name)
+        new_title = input("Enter new project title: ").strip()
+        project_manager.update_project_name(index, new_title)
         print("Project renamed successfully.")
-    except ValueError as e:
-        print(f"Validation error: {e}")
-    except IndexError as e:
-        print(f"Selection error: {e}")
+    except (ValueError, IndexError) as e:
+        print(f"Error: {e}")
 
 
 def _handle_delete_project(project_manager: ProjectManager) -> None:
@@ -96,10 +94,8 @@ def _handle_delete_project(project_manager: ProjectManager) -> None:
         index = int(input("Enter project number to delete: ")) - 1
         project_manager.remove_project(index)
         print("Project deleted successfully.")
-    except ValueError:
-        print("Invalid input, please enter a number.")
-    except IndexError as e:
-        print(f"Selection error: {e}")
+    except (ValueError, IndexError) as e:
+        print(f"Error: {e}")
 
 
 def _handle_manage_tasks(project_manager: ProjectManager) -> None:
@@ -109,24 +105,19 @@ def _handle_manage_tasks(project_manager: ProjectManager) -> None:
         print("No projects available to manage tasks.")
         return
 
-    print("\nSelect a project to manage its tasks:")
     _display_projects(project_manager)
-
     try:
         index = int(input("Enter project number: ")) - 1
         selected_project = projects[index]
-        print(f"You selected: {selected_project.name}")
-        _open_task_management_menu(selected_project, project_manager)
-    except ValueError:
-        print("Invalid input, please enter a number.")
-    except IndexError:
+        _open_task_management_menu(selected_project, project_manager, index)
+    except (ValueError, IndexError):
         print("Invalid project selection.")
 
 
-def _open_task_management_menu(project: Project, project_manager: ProjectManager) -> None:
+def _open_task_management_menu(project: Project, project_manager: ProjectManager, project_index: int) -> None:
     """Open the task management menu for a specific project."""
     while True:
-        print(f"\n--- TASK MANAGEMENT for {project.name} ---")
+        print(f"\n--- TASK MANAGEMENT for {project.detail.title} ---")
         print("1. View All Tasks")
         print("2. Add Task")
         print("3. Change Task Status")
@@ -139,13 +130,13 @@ def _open_task_management_menu(project: Project, project_manager: ProjectManager
         if choice == "1":
             _display_tasks(project)
         elif choice == "2":
-            _handle_add_task(project, project_manager)
+            _handle_add_task(project_manager, project_index)
         elif choice == "3":
-            _handle_change_task_status(project)
+            _handle_change_task_status(project_manager, project_index)
         elif choice == "4":
-            _handle_edit_task(project, project_manager)
+            _handle_edit_task(project_manager, project_index)
         elif choice == "5":
-            _handle_delete_task(project)
+            _handle_delete_task(project_manager, project_index)
         elif choice == "6":
             break
         else:
@@ -158,93 +149,80 @@ def _display_tasks(project: Project) -> None:
         print("No tasks available for this project.")
         return
     for idx, task in enumerate(project.tasks, start=1):
-        print(f"{idx}. {task.title} [{task.status}]")
-        print(f"   {task.description[:80]}...")
+        print(f"{idx}. {task.detail.title} [{task.status}]")
+        print(f"   {task.detail.description[:80]}...")
 
 
-def _handle_add_task(project: Project, project_manager: ProjectManager) -> None:
+def _handle_add_task(project_manager: ProjectManager, project_index: int) -> None:
     """Handle adding a new task to the selected project."""
     title = input("Enter task title: ").strip()
     description = input("Enter task description: ").strip()
-    project_index = project_manager.get_all_projects().index(project)
+    detail = Detail(title=title, description=description)
     try:
-        project_manager.add_task_to_project(project_index, title, description)
+        project_manager.add_task_to_project(project_index, detail)
         print("Task added successfully.")
-    except ValueError as e:
-        print(f"Validation error: {e}")
-    except OverflowError as e:
-        print(f"Limit error: {e}")
-    except IndexError as e:
-        print(f"Selection error: {e}")
+    except (ValueError, OverflowError, IndexError) as e:
+        print(f"Error: {e}")
 
 
-def _handle_change_task_status(project: Project) -> None:
+def _handle_change_task_status(project_manager: ProjectManager, project_index: int) -> None:
     """Handle changing the status of a task."""
+    project = project_manager.get_all_projects()[project_index]
     _display_tasks(project)
     if not project.tasks:
         return
     try:
         index = int(input("Enter task number to change status: ")) - 1
-        task = project.tasks[index]
         print("Choose new status:")
         print("1. todo")
         print("2. doing")
         print("3. done")
-        status_choice = input("Enter choice: ").strip()
         status_map = {"1": "todo", "2": "doing", "3": "done"}
-        if status_choice not in status_map:
+        choice = input("Enter choice: ").strip()
+        if choice not in status_map:
             print("Invalid status choice.")
             return
-        task.status = status_map[status_choice]
-        print(f"Task '{task.title}' status updated to '{task.status}'.")
-    except ValueError:
-        print("Invalid input, please enter a number.")
-    except IndexError:
-        print("Invalid task selection.")
+        project_manager.update_task_status(project_index, index, status_map[choice])
+        print("Task status updated successfully.")
+    except (ValueError, IndexError) as e:
+        print(f"Error: {e}")
 
 
-def _handle_edit_task(project: Project, project_manager: ProjectManager) -> None:
-    """Handle editing an existing task."""
+def _handle_edit_task(project_manager: ProjectManager, project_index: int) -> None:
+    """Handle editing a task's detail and status."""
+    project = project_manager.get_all_projects()[project_index]
     _display_tasks(project)
     if not project.tasks:
         return
     try:
-        task_index = int(input("Enter task number to edit: ")) - 1
+        index = int(input("Enter task number to edit: ")) - 1
         title = input("Enter new task title: ").strip()
         description = input("Enter new task description: ").strip()
-
+        detail = Detail(title=title, description=description)
         print("Choose new status:")
         print("1. todo")
         print("2. doing")
         print("3. done")
-        status_choice = input("Enter choice: ").strip()
         status_map = {"1": "todo", "2": "doing", "3": "done"}
-
-        if status_choice not in status_map:
+        choice = input("Enter choice: ").strip()
+        if choice not in status_map:
             print("Invalid status choice.")
             return
-
-        project_index = project_manager.get_all_projects().index(project)
-        project_manager.update_task_details(
-            project_index, task_index, title, description, status_map[status_choice]
-        )
-        print("Task updated successfully.")
-    except ValueError as e:
-        print(f"Validation error: {e}")
-    except IndexError:
-        print("Invalid task selection.")
+        project_manager.update_task_details(project_index, index, detail, status_map[choice])
+        print("Task edited successfully.")
+    except (ValueError, IndexError) as e:
+        print(f"Error: {e}")
 
 
-def _handle_delete_task(project: Project) -> None:
+def _handle_delete_task(project_manager: ProjectManager, project_index: int) -> None:
     """Handle deleting a task from the selected project."""
+    project = project_manager.get_all_projects()[project_index]
     _display_tasks(project)
     if not project.tasks:
         return
     try:
         index = int(input("Enter task number to delete: ")) - 1
-        del project.tasks[index]
+        project_manager.remove_task(project_index, index)
         print("Task deleted successfully.")
-    except ValueError:
-        print("Invalid input, please enter a number.")
-    except IndexError:
-        print("Invalid task selection.")
+    except (ValueError, IndexError) as e:
+        print(f"Error: {e}")

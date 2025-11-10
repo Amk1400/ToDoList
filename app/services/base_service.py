@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, TypeVar, Generic
-from models import Detail
-from config import AppConfig
+from app.models.models import Detail
+from app.core.config import AppConfig
 
 T = TypeVar("T")
 

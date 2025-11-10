@@ -1,6 +1,6 @@
-from Logic.project_manager import ProjectManager
-from Ui.base_menu import BaseMenu
-from Ui.project_menu import ProjectMenu
+from app.services.project_service import ProjectManager
+from app.cli.base_menu import BaseMenu
+from app.cli.project_menu import ProjectMenu
 
 
 class MainMenu(BaseMenu):

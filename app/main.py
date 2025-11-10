@@ -1,8 +1,8 @@
 import os
 from dotenv import load_dotenv
-from config import AppConfig
-from Logic.project_manager import ProjectManager
-from Ui.main_menu import MainMenu
+from app.core.config import AppConfig
+from app.services.project_service import ProjectManager
+from app.cli.main_menu import MainMenu
 
 
 def main() -> None:

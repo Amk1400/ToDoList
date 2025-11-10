@@ -1,7 +1,7 @@
-from typing import List, Optional
-from config import AppConfig
-from models import Detail, Task, Project
-from Logic.base_manager import BaseManager
+from typing import Optional
+from app.core.config import AppConfig
+from app.models.models import Detail, Task, Project
+from app.services.base_service import BaseManager
 
 
 class TaskManager(BaseManager[Task]):

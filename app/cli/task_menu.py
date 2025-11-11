@@ -1,12 +1,8 @@
-from app.models.models import Detail, Project
+from typing import List
+from app.models.models import Detail, Project, Task
 from app.services.task_service import TaskManager
 from app.cli.base_menu import BaseMenu
-from app.exceptions.entity import (
-    ValidationError,
-    LimitExceededError,
-    NotFoundError,
-    StatusError,
-)
+from app.exceptions.entity import ValidationError, LimitExceededError, NotFoundError, StatusError
 
 
 class TaskMenu(BaseMenu):
@@ -28,18 +24,26 @@ class TaskMenu(BaseMenu):
 
     def _setup_options(self) -> None:
         """Register available task options."""
-        self.add_option("1", self._view_tasks)
+        self.add_option("1", self._show_tasks)
         self.add_option("2", self._add_task)
         self.add_option("3", self._update_task)
         self.add_option("4", self._delete_task)
         self.add_option("5", self._go_back)
 
-    def _view_tasks(self) -> None:
-        """Display all tasks."""
-        if not self._project.tasks:
-            print("No tasks available.")
+    def _show_tasks(self) -> None:
+        """Display all tasks for the project."""
+        self._view_tasks(self._project.tasks)
+
+    def _view_tasks(self, tasks: List[Task]) -> None:
+        """Render a list of tasks.
+
+        Args:
+            tasks (List[Task]): The tasks to display.
+        """
+        if not tasks:
+            print("⚠ No tasks available.")
             return
-        for i, task in enumerate(self._project.tasks, start=1):
+        for i, task in enumerate(tasks, start=1):
             print(f"{i}. {task.detail.title} [{task.status}] - {task.detail.description}")
 
     def _add_task(self) -> None:
@@ -66,7 +70,7 @@ class TaskMenu(BaseMenu):
             NotFoundError: If task index is invalid.
             StatusError: If task status is invalid.
         """
-        self._view_tasks()
+        self._view_tasks(self._project.tasks)
         try:
             index = int(input("Enter task number: ")) - 1
             title = input("Enter new title: ").strip()
@@ -75,7 +79,7 @@ class TaskMenu(BaseMenu):
             detail = Detail(title=title, description=description)
             self._task_manager.update_task(self._project, index, detail, status)
             print("✅ Task updated successfully.")
-        except (ValidationError, NotFoundError, StatusError) as error:
+        except (ValidationError, NotFoundError, StatusError, ValueError) as error:
             print(f"❌ {error}")
 
     def _delete_task(self) -> None:
@@ -84,10 +88,10 @@ class TaskMenu(BaseMenu):
         Raises:
             NotFoundError: If task index is invalid.
         """
-        self._view_tasks()
+        self._view_tasks(self._project.tasks)
         try:
             index = int(input("Enter task number: ")) - 1
             self._task_manager.remove_task(self._project, index)
             print("🗑️ Task deleted successfully.")
-        except NotFoundError as error:
+        except (NotFoundError, ValueError) as error:
             print(f"❌ {error}")

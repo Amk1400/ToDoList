@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, List
+from typing import Generic, TypeVar, List, Callable
 from app.models.models import Detail
 from app.cli.base_menu import BaseMenu
-from app.exceptions.entity import ValidationError, LimitExceededError
+from app.exceptions.entity import NotFoundError, ValidationError, LimitExceededError
 
 T = TypeVar("T")
 
@@ -11,7 +11,8 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
     """Abstract base menu for managing generic entities."""
 
     def __init__(self, title: str, parent_menu: BaseMenu) -> None:
-        """Initialize the entity menu.
+        """
+        Initialize the entity menu.
 
         Args:
             title (str): Menu title.
@@ -64,6 +65,20 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         description = input("Enter description: ").strip()
         return Detail(title=title, description=description)
 
+    def _create_entity(self, create_callback: Callable[[Detail], None], entity_name: str) -> None:
+        """Generic method to create an entity.
+
+        Args:
+            create_callback (Callable[[Detail], None]): Function that creates the entity given a Detail object.
+            entity_name (str): Name of the entity type.
+        """
+        try:
+            detail = self._get_input_detail()
+            create_callback(detail)
+            print(f"✅ {entity_name} created successfully.")
+        except (ValidationError, LimitExceededError) as error:
+            self._handle_error(error)
+
     def _handle_error(self, error: Exception) -> None:
         """Display a formatted error message.
 
@@ -72,32 +87,26 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         """
         print(f"❌ {error}")
 
-    def _create_entity(self, create_method: callable, entity_name: str) -> None:
-        """Generic creation routine for entities.
+    def _delete_entity(
+        self,
+        entities: List[T],
+        delete_callback: Callable[[int], None],
+        entity_name: str,
+    ) -> None:
+        """Generic deletion of an entity from a list.
 
         Args:
-            create_method (callable): Manager method to create the entity.
-            entity_name (str): Entity name for display messages.
-
-        Raises:
-            ValidationError, LimitExceededError: Propagated from manager.
+            entities (List[T]): List of entities.
+            delete_callback (Callable[[int], None]): Function to perform deletion by index.
+            entity_name (str): Name of the entity type.
         """
-        try:
-            detail = self._get_input_detail()
-            create_method(detail)
-            print(f"✅ {entity_name} created successfully.")
-        except (ValidationError, LimitExceededError) as error:
-            self._handle_error(error)
-
-    def _delete_entity(self, entities: List[T], delete_callback: Callable[[int], None], entity_name: str) -> None:
-        """Generic delete handler for entities."""
         if not entities:
             print(f"⚠ No {entity_name.lower()}s available.")
             return
 
         self._view_entities(entities, entity_name)
         try:
-            index = int(input(f"Enter {entity_name} number to delete: ")) - 1
+            index = int(input(f"Enter {entity_name.lower()} number to delete: ")) - 1
             delete_callback(index)
             print(f"🗑️ {entity_name} deleted successfully.")
         except (NotFoundError, ValueError) as error:

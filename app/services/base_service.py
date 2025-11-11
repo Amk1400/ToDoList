@@ -1,19 +1,24 @@
 from abc import ABC, abstractmethod
 from typing import List, TypeVar, Generic
-from app.models.models import Detail
+from app.models.models import Detail, Project, Task
 from app.core.config import AppConfig
+from app.exceptions.entity import ValidationError, LimitExceededError, NotFoundError
 
 T = TypeVar("T")
 
 
 class BaseManager(ABC, Generic[T]):
-    """Abstract base manager providing reusable CRUD and validation logic."""
+    """Abstract base manager providing reusable CRUD and validation logic.
+
+    Attributes:
+        _config (AppConfig): Configuration defining validation limits.
+    """
 
     def __init__(self, config: AppConfig) -> None:
-        """Initialize base manager with configuration.
+        """Initialize base manager.
 
         Args:
-            config (AppConfig): Configuration object containing validation limits.
+            config (AppConfig): Application configuration.
         """
         self._config: AppConfig = config
 
@@ -21,16 +26,16 @@ class BaseManager(ABC, Generic[T]):
         """Create a new entity after validation.
 
         Args:
-            items (List[T]): The list to which the new entity will be added.
-            detail (Detail): The detail data used to create the entity.
-            max_count (int): Maximum allowed entities.
+            items (List[T]): Collection of entities.
+            detail (Detail): Data used to create the entity.
+            max_count (int): Maximum number of allowed entities.
 
         Raises:
-            OverflowError: If the maximum count of entities is reached.
-            ValueError: If the provided detail fails validation.
+            LimitExceededError: If entity limit is exceeded.
+            ValidationError: If entity validation fails.
         """
         if len(items) >= max_count:
-            raise OverflowError(f"Maximum number of {self._entity_name()}s reached.")
+            raise LimitExceededError(items[0] if items else Project(Detail("", "")))
         self._validate(detail)
         items.append(self._create_entity(detail))
 
@@ -38,43 +43,43 @@ class BaseManager(ABC, Generic[T]):
         """Retrieve an entity by index.
 
         Args:
-            items (List[T]): The list of entities.
-            index (int): The index of the entity to retrieve.
+            items (List[T]): Collection of entities.
+            index (int): Position of the entity to retrieve.
 
         Returns:
-            T: The entity at the specified index.
+            T: The entity at the given index.
 
         Raises:
-            IndexError: If the index is out of range.
+            NotFoundError: If the index is invalid.
         """
         if not (0 <= index < len(items)):
-            raise IndexError(f"Invalid {self._entity_name().lower()} index.")
+            raise NotFoundError(items[0] if items else Project(Detail("", "")))
         return items[index]
 
     def remove_entity(self, items: List[T], index: int) -> None:
         """Remove an entity by index.
 
         Args:
-            items (List[T]): The list of entities.
-            index (int): The index of the entity to remove.
+            items (List[T]): Collection of entities.
+            index (int): Position of entity to remove.
 
         Raises:
-            IndexError: If the index is invalid.
+            NotFoundError: If entity index is invalid.
         """
         entity = self.get_entity(items, index)
         items.remove(entity)
 
     def update_entity(self, items: List[T], index: int, detail: Detail) -> None:
-        """Update an entity’s detail after validation.
+        """Update an entity’s details after validation.
 
         Args:
-            items (List[T]): The list of entities.
-            index (int): The index of the entity to update.
-            detail (Detail): The new detail values.
+            items (List[T]): Collection of entities.
+            index (int): Index of entity to update.
+            detail (Detail): New detail values.
 
         Raises:
-            IndexError: If the index is invalid.
-            ValueError: If validation fails.
+            NotFoundError: If entity index is invalid.
+            ValidationError: If validation fails.
         """
         entity = self.get_entity(items, index)
         self._validate(detail)
@@ -82,34 +87,34 @@ class BaseManager(ABC, Generic[T]):
 
     @abstractmethod
     def _entity_name(self) -> str:
-        """Return the entity name for error messages.
+        """Return the entity name for display or logs.
 
         Returns:
-            str: The name of the managed entity.
+            str: Entity name.
         """
         raise NotImplementedError
 
     @abstractmethod
     def _create_entity(self, detail: Detail) -> T:
-        """Factory method for creating an entity instance.
+        """Factory method to create a new entity instance.
 
         Args:
-            detail (Detail): Detail data for entity creation.
+            detail (Detail): Data used to construct the entity.
 
         Returns:
-            T: A new entity instance.
+            T: The new entity.
         """
         raise NotImplementedError
 
     @abstractmethod
     def _validate(self, detail: Detail) -> None:
-        """Validate an entity’s detail data.
+        """Validate entity detail data.
 
         Args:
-            detail (Detail): The detail data to validate.
+            detail (Detail): Data to validate.
 
         Raises:
-            ValueError: If validation fails.
+            ValidationError: If validation fails.
         """
         raise NotImplementedError
 
@@ -118,8 +123,8 @@ class BaseManager(ABC, Generic[T]):
         """Apply updated details to an existing entity.
 
         Args:
-            entity (T): The entity to update.
-            detail (Detail): The new detail data.
+            entity (T): Entity being updated.
+            detail (Detail): New data to apply.
         """
         raise NotImplementedError
 
@@ -128,26 +133,22 @@ class BaseManager(ABC, Generic[T]):
         detail: Detail,
         max_title_len: int,
         max_desc_len: int,
-        entity_name: str
+        entity_name: str,
     ) -> None:
-        """Validate common title and description constraints for Detail objects.
+        """Validate title and description constraints.
 
         Args:
-            detail (Detail): The detail object containing title and description.
-            max_title_len (int): Maximum allowed length for the title.
-            max_desc_len (int): Maximum allowed length for the description.
-            entity_name (str): The name of the entity being validated.
+            detail (Detail): Entity details.
+            max_title_len (int): Maximum title length.
+            max_desc_len (int): Maximum description length.
+            entity_name (str): Entity name.
 
         Raises:
-            ValueError: If title or description is empty or exceeds the limits.
+            ValidationError: If constraints are violated.
         """
         title, description = detail.title.strip(), detail.description.strip()
 
-        if not title:
-            raise ValueError(f"{entity_name} title cannot be empty.")
-        if len(title) > max_title_len:
-            raise ValueError(f"{entity_name} title cannot exceed {max_title_len} characters.")
-        if not description:
-            raise ValueError(f"{entity_name} description cannot be empty.")
-        if len(description) > max_desc_len:
-            raise ValueError(f"{entity_name} description cannot exceed {max_desc_len} characters.")
+        if not title or len(title) > max_title_len:
+            raise ValidationError(Project(detail))
+        if not description or len(description) > max_desc_len:
+            raise ValidationError(Project(detail))

@@ -1,6 +1,7 @@
 from app.services.project_service import ProjectManager
 from app.cli.base_menu import BaseMenu
 from app.cli.project_menu import ProjectMenu
+from app.exceptions import AppError
 
 
 class MainMenu(BaseMenu):
@@ -22,15 +23,17 @@ class MainMenu(BaseMenu):
         self.add_option("2", self._exit_program)
 
     def _open_project_menu(self) -> None:
-        """project menu.
+        """Open the project management menu.
 
         Raises:
-            Exception: If the project menu fails to open.
+            AppError: If the project menu fails to open.
         """
         try:
             ProjectMenu(self._project_manager, parent_menu=self).run()
+        except AppError as error:
+            print(f"❌ {error}")
         except Exception as error:
-            print(f"❌ Error while opening project menu: {error}")
+            print(f"⚠ Unexpected error: {error}")
 
     def _exit_program(self) -> None:
         """Exit.

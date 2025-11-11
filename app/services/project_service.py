@@ -3,126 +3,151 @@ from app.core.config import AppConfig
 from app.models.models import Detail, Project
 from app.services.base_service import BaseManager
 from app.services.task_service import TaskManager
+from app.exceptions.entity import (
+    AlreadyExistsError,
+    LimitExceededError,
+    NotFoundError,
+    ValidationError,
+)
 
 
 class ProjectManager(BaseManager[Project]):
-    """Manager class responsible for handling all project-level operations."""
+    """Manager for handling all project-level operations."""
 
     def __init__(self, config: AppConfig) -> None:
-        """Initialize the project manager.
+        """Initialize project manager.
 
         Args:
-            config (AppConfig): Configuration object defining validation limits.
+            config (AppConfig): Configuration defining validation limits.
         """
         super().__init__(config)
         self._projects: List[Project] = []
         self._task_manager: TaskManager = TaskManager(config)
 
     def get_all_projects(self) -> List[Project]:
-        """Return all projects in memory.
+        """Return all projects.
 
         Returns:
-            List[Project]: A list of all existing projects.
+            List[Project]: List of existing projects.
         """
         return self._projects
 
     def create_project(self, detail: Detail) -> None:
-        """Create a new project with validation.
-
-        Args:
-            detail (Detail): The project's title and description.
-
-        Raises:
-            ValueError: If a project with the same title already exists.
-            OverflowError: If the maximum number of projects is reached.
-        """
-        if any(p.detail.title == detail.title for p in self._projects):
-            raise ValueError("Project title must be unique.")
-        self.create(self._projects, detail, self._config.max_projects)
-
-    def get_project(self, index: int) -> Project:
-        """Retrieve a project by its index.
-
-        Args:
-            index (int): Index of the project to retrieve.
-
-        Returns:
-            Project: The project at the specified index.
-
-        Raises:
-            IndexError: If the index is invalid.
-        """
-        return self.get_entity(self._projects, index)
-
-    def remove_project(self, index: int) -> None:
-        """Remove a project from the system.
-
-        Args:
-            index (int): Index of the project to remove.
-
-        Raises:
-            IndexError: If the index is invalid.
-        """
-        self.remove_entity(self._projects, index)
-
-    def update_project(self, index: int, detail: Detail) -> None:
-        """Update the detail of a project.
-
-        Args:
-            index (int): Index of the project to update.
-            detail (Detail): The new title and description for the project.
-
-        Raises:
-            IndexError: If the index is invalid.
-            ValueError: If validation of project detail fails.
-        """
-        self.update_entity(self._projects, index, detail)
-
-    def get_task_manager(self) -> TaskManager:
-        """Return the internal task manager instance.
-
-        Returns:
-            TaskManager: The task manager associated with this project manager.
-        """
-        return self._task_manager
-
-    def _entity_name(self) -> str:
-        """Return the entity name for identification.
-
-        Returns:
-            str: The string 'Project'.
-        """
-        return "Project"
-
-    def _create_entity(self, detail: Detail) -> Project:
-        """Factory method to create a new project instance.
+        """Create a new project.
 
         Args:
             detail (Detail): Project title and description.
 
+        Raises:
+            AlreadyExistsError: If project title already exists.
+            LimitExceededError: If project count exceeds limit.
+            ValidationError: If detail validation fails.
+        """
+        if any(p.detail.title == detail.title for p in self._projects):
+            raise AlreadyExistsError(Project(detail))
+        if len(self._projects) >= self._config.max_projects:
+            raise LimitExceededError(Project(detail))
+        try:
+            self.create(self._projects, detail, self._config.max_projects)
+        except ValidationError as error:
+            raise ValidationError(Project(detail)) from error
+
+    def get_project(self, index: int) -> Project:
+        """Retrieve project by index.
+
+        Args:
+            index (int): Project index.
+
         Returns:
-            Project: A new project instance.
+            Project: Project at specified index.
+
+        Raises:
+            NotFoundError: If index is invalid.
+        """
+        if not (0 <= index < len(self._projects)):
+            raise NotFoundError(Project(Detail("", "")))
+        return self._projects[index]
+
+    def remove_project(self, index: int) -> None:
+        """Remove project.
+
+        Args:
+            index (int): Project index.
+
+        Raises:
+            NotFoundError: If index is invalid.
+        """
+        try:
+            self.remove_entity(self._projects, index)
+        except IndexError as error:
+            raise NotFoundError(Project(Detail("", ""))) from error
+
+    def update_project(self, index: int, detail: Detail) -> None:
+        """Update project detail.
+
+        Args:
+            index (int): Project index.
+            detail (Detail): New detail values.
+
+        Raises:
+            NotFoundError: If index is invalid.
+            ValidationError: If validation fails.
+        """
+        try:
+            self.update_entity(self._projects, index, detail)
+        except IndexError as error:
+            raise NotFoundError(Project(detail)) from error
+        except ValueError as error:
+            raise ValidationError(Project(detail)) from error
+
+    def get_task_manager(self) -> TaskManager:
+        """Return internal task manager.
+
+        Returns:
+            TaskManager: Task manager instance.
+        """
+        return self._task_manager
+
+    def _entity_name(self) -> str:
+        """Return entity name.
+
+        Returns:
+            str: 'Project'.
+        """
+        return "Project"
+
+    def _create_entity(self, detail: Detail) -> Project:
+        """Create project instance.
+
+        Args:
+            detail (Detail): Project data.
+
+        Returns:
+            Project: New project instance.
         """
         return Project(detail=detail)
 
     def _validate(self, detail: Detail) -> None:
-        """Validate project detail fields against configuration limits.
+        """Validate project detail.
 
         Args:
-            detail (Detail): The detail object to validate.
+            detail (Detail): Data to validate.
 
         Raises:
-            ValueError: If validation fails for title or description.
+            ValidationError: If validation fails.
         """
         max_name = self._config.max_project_name_length
-        max_description = self._config.max_project_description_length
-        self._validate_detail(detail, max_name, max_description, "Project")
+        max_desc = self._config.max_project_description_length
+        try:
+            self._validate_detail(detail, max_name, max_desc, "Project")
+        except ValueError as error:
+            raise ValidationError(Project(detail)) from error
 
     def _update_entity_detail(self, entity: Project, detail: Detail) -> None:
-        """Apply updated detail to a project entity.
+        """Apply updated detail.
 
         Args:
-            entity (Project): The project to update.
-            detail (Detail): The new detail data.
+            entity (Project): Target project.
+            detail (Detail): New detail.
         """
         entity.detail = detail

@@ -1,6 +1,6 @@
 from typing import List
 from app.core.config import AppConfig
-from app.models.models import Detail, Task, Project
+from app.models.models import Detail, Task
 from app.services.base_service import BaseManager
 from app.exceptions.entity import (
     AlreadyExistsError,

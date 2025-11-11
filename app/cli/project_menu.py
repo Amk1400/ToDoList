@@ -1,27 +1,25 @@
-from typing import List
 from app.models.models import Detail, Project
 from app.services.project_service import ProjectManager
-from app.cli.base_menu import BaseMenu
 from app.cli.task_menu import TaskMenu
-from app.exceptions.entity import ValidationError, NotFoundError, LimitExceededError
+from app.cli.entity_menu import EntityMenu
+from app.exceptions.entity import ValidationError, NotFoundError
 
 
-class ProjectMenu(BaseMenu):
-    """Menu for managing project-related operations."""
+class ProjectMenu(EntityMenu[Project]):
+    """Menu for managing projects."""
 
-    def __init__(self, project_manager: ProjectManager, parent_menu: BaseMenu) -> None:
+    def __init__(self, project_manager: ProjectManager, parent_menu: EntityMenu) -> None:
         """Initialize the project menu.
 
         Args:
-            project_manager (ProjectManager): Handles project-related operations.
-            parent_menu (BaseMenu): Parent menu for navigation hierarchy.
+            project_manager (ProjectManager): Handles project operations.
+            parent_menu (EntityMenu): Parent menu for navigation.
         """
-        super().__init__("Project Management", parent_menu)
         self._project_manager = project_manager
-        self._setup_options()
+        super().__init__("Project Management", parent_menu)
 
     def _setup_options(self) -> None:
-        """Define and register project menu options."""
+        """Register project menu options."""
         self.add_option("1", self._show_projects)
         self.add_option("2", self._create_project)
         self.add_option("3", self._rename_project)
@@ -29,99 +27,63 @@ class ProjectMenu(BaseMenu):
         self.add_option("5", self._open_task_menu)
         self.add_option("6", self._go_back)
 
+    def _get_extra_info(self, entity: Project) -> str:
+        """Return additional display info for projects."""
+        return ""
+
     def _show_projects(self) -> None:
         """Display all projects."""
         projects = self._project_manager.get_all_projects()
-        self._view_projects(projects)
-
-    def _view_projects(self, projects: List[Project]) -> None:
-        """Render a list of projects.
-
-        Args:
-            projects (List[Project]): The projects to display.
-        """
-        if not projects:
-            print("⚠ No projects available.")
-            return
-        for index, project in enumerate(projects, start=1):
-            print(f"{index}. {project.detail.title} - {project.detail.description}")
+        self._view_entities(projects, "Project")
 
     def _create_project(self) -> None:
-        """Create a project.
-
-        Raises:
-            ValidationError: If the project details are invalid.
-            LimitExceededError: If the project limit is reached.
-        """
-        title = input("Enter project title: ").strip()
-        description = input("Enter project description: ").strip()
-        try:
-            detail = Detail(title=title, description=description)
-            self._project_manager.create_project(detail)
-            print("✅ Project created successfully.")
-        except (ValidationError, LimitExceededError) as error:
-            print(f"❌ {error}")
+        """Create a new project."""
+        self._create_entity(self._project_manager.create_project, "Project")
 
     def _rename_project(self) -> None:
         """Rename a project.
 
         Raises:
-            ValidationError: If validation fails.
-            NotFoundError: If the project index is invalid.
+            ValidationError: If detail invalid.
+            NotFoundError: If index invalid.
         """
         projects = self._project_manager.get_all_projects()
         if not projects:
             print("⚠ No projects available.")
             return
 
-        self._view_projects(projects)
+        self._view_entities(projects, "Project")
         try:
             index = int(input("Enter project number: ")) - 1
             new_title = input("Enter new project title: ").strip()
             project = projects[index]
-            updated_detail = Detail(
-                title=new_title, description=project.detail.description
-            )
+            updated_detail = Detail(title=new_title, description=project.detail.description)
             self._project_manager.update_project(index, updated_detail)
             print("✅ Project renamed successfully.")
         except (ValidationError, NotFoundError, ValueError) as error:
-            print(f"❌ {error}")
+            self._handle_error(error)
 
     def _delete_project(self) -> None:
-        """Delete a project.
-
-        Raises:
-            NotFoundError: If the project index is invalid.
-        """
+        """Delete a project."""
         projects = self._project_manager.get_all_projects()
-        if not projects:
-            print("⚠ No projects available.")
-            return
-
-        self._view_projects(projects)
-        try:
-            index = int(input("Enter project number: ")) - 1
-            self._project_manager.remove_project(index)
-            print("🗑️ Project deleted successfully.")
-        except (NotFoundError, ValueError) as error:
-            print(f"❌ {error}")
+        self._delete_entity(
+            projects,
+            lambda idx: self._project_manager.remove_project(idx),
+            "Project"
+        )
 
     def _open_task_menu(self) -> None:
-        """Open the task menu for a selected project.
-
-        Raises:
-            NotFoundError: If the project index is invalid.
-        """
+        """Open the task menu for a selected project."""
         projects = self._project_manager.get_all_projects()
         if not projects:
             print("⚠ No projects available.")
             return
 
-        self._view_projects(projects)
+        self._view_entities(projects, "Project")
         try:
-            project_index = int(input("Enter project number: ")) - 1
-            project = projects[project_index]
+            index = int(input("Enter project number: ")) - 1
+            project = projects[index]
             task_manager = self._project_manager.get_task_manager()
             TaskMenu(task_manager, project, parent_menu=self).run()
         except (NotFoundError, ValueError) as error:
-            print(f"❌ {error}")
+            self._handle_error(error)

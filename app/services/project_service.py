@@ -1,8 +1,8 @@
 from typing import List
-from config import AppConfig
-from models import Detail, Project
-from managers.base_manager import BaseManager
-from managers.task_manager import TaskManager
+from app.core.config import AppConfig
+from app.models.models import Detail, Project
+from app.services.base_service import BaseManager
+from app.services.task_service import TaskManager
 
 
 class ProjectManager(BaseManager[Project]):

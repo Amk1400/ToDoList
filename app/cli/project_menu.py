@@ -1,8 +1,8 @@
 from typing import List
-from models import Detail, Project
-from managers.project_manager import ProjectManager
-from menus.base_menu import BaseMenu
-from menus.task_menu import TaskMenu
+from app.models.models import Detail, Project
+from app.services.project_service import ProjectManager
+from app.cli.base_menu import BaseMenu
+from app.cli.task_menu import TaskMenu
 
 
 class ProjectMenu(BaseMenu):

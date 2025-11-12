@@ -1,22 +1,17 @@
 from app.models.models import Project, Task
 from app.services.task_service import TaskManager
 from app.cli.entity_menu import EntityMenu
-from app.exceptions.entity import (
-    ValidationError,
-    LimitExceededError,
-    AlreadyExistsError
-)
 
 
 class TaskMenu(EntityMenu[Task]):
-    """Menu for managing tasks."""
+    """Menu for managing tasks inside a project."""
 
     def __init__(self, task_manager: TaskManager, project: Project, parent_menu: EntityMenu) -> None:
-        """Initialize the task menu.
+        """Initialize task menu.
 
         Args:
             task_manager (TaskManager): Handles task operations.
-            project (Project): Project containing tasks.
+            project (Project): The project containing tasks.
             parent_menu (EntityMenu): Parent menu for navigation.
         """
         self._task_manager = task_manager
@@ -24,7 +19,7 @@ class TaskMenu(EntityMenu[Task]):
         super().__init__(f"Task Management for {project.detail.title}", parent_menu)
 
     def _setup_options(self) -> None:
-        """Register task options."""
+        """Register task menu options."""
         self.add_option("1", self._show_tasks)
         self.add_option("2", self._create_task)
         self.add_option("3", self._update_task)
@@ -32,29 +27,26 @@ class TaskMenu(EntityMenu[Task]):
         self.add_option("5", self._go_back)
 
     def _get_extra_info(self, entity: Task) -> str:
-        """Return task info.
+        """Return additional info for display.
 
         Args:
-            entity (Task): Task entity.
+            entity (Task): Task to describe.
 
         Returns:
-            str: Status in brackets.
+            str: Status info.
         """
         return f"[{entity.status}]"
 
     def _show_tasks(self) -> None:
-        """Display all tasks in the project."""
+        """Display all tasks."""
         self._view_entities(self._project.tasks, "Task")
 
     def _create_task(self) -> None:
-        """Add a new task using TaskManager."""
-        try:
-            detail = self._get_input_detail()
-            self._task_manager.create_task(detail)
-            self._project.tasks.append(self._task_manager.get_all_tasks()[-1])
-            print("✅ Task created successfully.")
-        except (ValidationError, LimitExceededError, AlreadyExistsError) as error:
-            self._handle_error(error)
+        """Create a new task."""
+        self._create_entity(
+            lambda detail: self._task_manager.create_task_for_project(self._project, detail),
+            "Task"
+        )
 
     def _update_task(self) -> None:
         """Update a task detail."""
@@ -64,15 +56,10 @@ class TaskMenu(EntityMenu[Task]):
             "Task"
         )
 
-    def _delete_task_callback(self, index: int) -> None:
-        """Perform full deletion of a task."""
-        self._task_manager.remove_task(index)
-        self._project.tasks.pop(index)
-
     def _delete_task(self) -> None:
         """Delete a task."""
         self._delete_entity(
             self._project.tasks,
-            self._delete_task_callback,
+            self._task_manager.remove_task,
             "Task"
         )

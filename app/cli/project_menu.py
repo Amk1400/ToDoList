@@ -1,8 +1,8 @@
-from app.models.models import Detail, Project
+from app.models.models import Project
 from app.services.project_service import ProjectManager
 from app.cli.task_menu import TaskMenu
 from app.cli.entity_menu import EntityMenu
-from app.exceptions.entity import ValidationError, NotFoundError
+from app.exceptions.entity import NotFoundError
 
 
 class ProjectMenu(EntityMenu[Project]):
@@ -19,7 +19,7 @@ class ProjectMenu(EntityMenu[Project]):
         super().__init__("Project Management", parent_menu)
 
     def _setup_options(self) -> None:
-        """Register project menu options."""
+        """Register project options."""
         self.add_option("1", self._show_projects)
         self.add_option("2", self._create_project)
         self.add_option("3", self._rename_project)
@@ -28,7 +28,14 @@ class ProjectMenu(EntityMenu[Project]):
         self.add_option("6", self._go_back)
 
     def _get_extra_info(self, entity: Project) -> str:
-        """Return additional display info for projects."""
+        """Return project info.
+
+        Args:
+            entity (Project): Project entity.
+
+        Returns:
+            str: Empty string for consistency.
+        """
         return ""
 
     def _show_projects(self) -> None:
@@ -41,39 +48,17 @@ class ProjectMenu(EntityMenu[Project]):
         self._create_entity(self._project_manager.create_project, "Project")
 
     def _rename_project(self) -> None:
-        """Rename a project.
-
-        Raises:
-            ValidationError: If detail invalid.
-            NotFoundError: If index invalid.
-        """
+        """Rename a project."""
         projects = self._project_manager.get_all_projects()
-        if not projects:
-            print("⚠ No projects available.")
-            return
-
-        self._view_entities(projects, "Project")
-        try:
-            index = int(input("Enter project number: ")) - 1
-            new_title = input("Enter new project title: ").strip()
-            project = projects[index]
-            updated_detail = Detail(title=new_title, description=project.detail.description)
-            self._project_manager.update_project(index, updated_detail)
-            print("✅ Project renamed successfully.")
-        except (ValidationError, NotFoundError, ValueError) as error:
-            self._handle_error(error)
+        self._update_entity(projects, self._project_manager.update_project, "Project")
 
     def _delete_project(self) -> None:
         """Delete a project."""
         projects = self._project_manager.get_all_projects()
-        self._delete_entity(
-            projects,
-            lambda idx: self._project_manager.remove_project(idx),
-            "Project"
-        )
+        self._delete_entity(projects, self._project_manager.remove_project, "Project")
 
     def _open_task_menu(self) -> None:
-        """Open the task menu for a selected project."""
+        """Open the task menu for a project."""
         projects = self._project_manager.get_all_projects()
         if not projects:
             print("⚠ No projects available.")

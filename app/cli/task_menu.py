@@ -1,24 +1,22 @@
-from app.models.models import Detail, Project, Task
+from app.models.models import Project, Task
 from app.services.task_service import TaskManager
 from app.cli.entity_menu import EntityMenu
 from app.exceptions.entity import (
     ValidationError,
     LimitExceededError,
-    NotFoundError,
-    AlreadyExistsError,
-    StatusError,
+    AlreadyExistsError
 )
 
 
 class TaskMenu(EntityMenu[Task]):
-    """Menu for managing tasks inside a project."""
+    """Menu for managing tasks."""
 
     def __init__(self, task_manager: TaskManager, project: Project, parent_menu: EntityMenu) -> None:
         """Initialize the task menu.
 
         Args:
             task_manager (TaskManager): Handles task operations.
-            project (Project): The project containing tasks.
+            project (Project): Project containing tasks.
             parent_menu (EntityMenu): Parent menu for navigation.
         """
         self._task_manager = task_manager
@@ -26,7 +24,7 @@ class TaskMenu(EntityMenu[Task]):
         super().__init__(f"Task Management for {project.detail.title}", parent_menu)
 
     def _setup_options(self) -> None:
-        """Register task menu options."""
+        """Register task options."""
         self.add_option("1", self._show_tasks)
         self.add_option("2", self._create_task)
         self.add_option("3", self._update_task)
@@ -34,7 +32,14 @@ class TaskMenu(EntityMenu[Task]):
         self.add_option("5", self._go_back)
 
     def _get_extra_info(self, entity: Task) -> str:
-        """Return additional info for display."""
+        """Return task info.
+
+        Args:
+            entity (Task): Task entity.
+
+        Returns:
+            str: Status in brackets.
+        """
         return f"[{entity.status}]"
 
     def _show_tasks(self) -> None:
@@ -52,33 +57,22 @@ class TaskMenu(EntityMenu[Task]):
             self._handle_error(error)
 
     def _update_task(self) -> None:
-        """Update an existing task.
+        """Update a task detail."""
+        self._update_entity(
+            self._project.tasks,
+            self._task_manager.update_task,
+            "Task"
+        )
 
-        Raises:
-            ValidationError: If new data invalid.
-            NotFoundError: If index invalid.
-            StatusError: If status invalid.
-        """
-        tasks = self._project.tasks
-        if not tasks:
-            print("⚠ No tasks available.")
-            return
-
-        self._view_entities(tasks, "Task")
-        try:
-            index = int(input("Enter task number: ")) - 1
-            title = input("Enter new title: ").strip()
-            description = input("Enter new description: ").strip()
-            detail = Detail(title=title, description=description)
-            self._task_manager.update_task(index, detail)
-            print("✅ Task updated successfully.")
-        except (ValidationError, NotFoundError, StatusError, ValueError) as error:
-            self._handle_error(error)
+    def _delete_task_callback(self, index: int) -> None:
+        """Perform full deletion of a task."""
+        self._task_manager.remove_task(index)
+        self._project.tasks.pop(index)
 
     def _delete_task(self) -> None:
         """Delete a task."""
         self._delete_entity(
             self._project.tasks,
-            lambda idx: (self._task_manager.remove_task(idx), self._project.tasks.pop(idx)),
+            self._delete_task_callback,
             "Task"
         )

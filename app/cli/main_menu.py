@@ -1,8 +1,6 @@
 from app.services.project_service import ProjectManager
 from app.cli.base_menu import BaseMenu
 from app.cli.project_menu import ProjectMenu
-from app.exceptions import AppError
-
 
 class MainMenu(BaseMenu):
     """Main menu providing access to project and task management."""

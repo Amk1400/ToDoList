@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, List, Callable
+from typing import Generic, TypeVar, List, Optional
 from app.models.models import Detail
 from app.cli.base_menu import BaseMenu
+from app.services.entity_service import EntityManager
 from app.exceptions.entity import NotFoundError, ValidationError, LimitExceededError
 
 T = TypeVar("T")
@@ -10,14 +11,16 @@ T = TypeVar("T")
 class EntityMenu(BaseMenu, ABC, Generic[T]):
     """Abstract base menu for managing entities."""
 
-    def __init__(self, title: str, parent_menu: BaseMenu) -> None:
+    def __init__(self, title: str, parent_menu: BaseMenu, entity_manager: EntityManager[T]) -> None:
         """Initialize the entity menu.
 
         Args:
             title (str): Menu title.
             parent_menu (BaseMenu): Parent menu for navigation.
+            entity_manager (EntityManager[T]): Manager handling entity operations.
         """
         super().__init__(title, parent_menu)
+        self._entity_manager: EntityManager[T] = entity_manager
         self._setup_options()
 
     @abstractmethod
@@ -40,49 +43,56 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
     def _view_entities(self, entities: List[T], entity_name: str) -> None:
         """Render a list of entities or raise NotFoundError if empty."""
         if not entities:
-            raise NotFoundError(entity_name)#we can not pass list[0] because its empty
+            raise NotFoundError(entity_name)
         for index, entity in enumerate(entities, start=1):
             title = getattr(entity.detail, "title", "Untitled")
             description = getattr(entity.detail, "description", "No description")
             extra = self._get_extra_info(entity)
             print(f"{index}. {title} {extra}- {description}")
 
-    def _create_entity(self, create_callback: Callable[[Detail], None], entity_name: str) -> None:
-        """Create a new entity."""
+    def _create_entity(self, parent: Optional[object], entity_name: str) -> None:
+        """Create a new entity using the associated EntityManager.
+
+        Args:
+            parent (Optional[object]): Parent context (e.g., project for tasks).
+            entity_name (str): Name of the entity.
+        """
         try:
             detail = self._get_input_detail()
-            create_callback(detail)
+            self._entity_manager.create_entity(parent, detail)
             print(f"✅ {entity_name} created successfully.")
         except (ValidationError, LimitExceededError) as error:
             self._handle_error(error)
 
-    def _update_entity(
-        self,
-        entities: List[T],
-        update_callback: Callable[[int, Detail], None],
-        entity_name: str,
-    ) -> None:
-        """Update an entity."""
+    def _update_entity_by_index(self, parent: object, entity_name: str) -> None:
+        """Update an entity by selecting its index.
+
+        Args:
+            parent (object): Parent context (e.g., project or None).
+            entity_name (str): Name of the entity to update.
+        """
         try:
-            self._view_entities(entities, entity_name)
+            collection = self._entity_manager.get_collection(parent)
+            self._view_entities(collection, entity_name)
             index = int(input(f"Enter {entity_name.lower()} number: ")) - 1
             detail = self._get_input_detail()
-            update_callback(index, detail)
+            self._entity_manager.update_entity_by_index(parent, index, detail)
             print(f"✅ {entity_name} updated successfully.")
         except (NotFoundError, ValidationError, ValueError) as error:
             self._handle_error(error)
 
-    def _delete_entity(
-        self,
-        entities: List[T],
-        delete_callback: Callable[[int], None],
-        entity_name: str,
-    ) -> None:
-        """Delete an entity."""
+    def _delete_entity_by_index(self, parent: object, entity_name: str) -> None:
+        """Delete an entity by selecting its index.
+
+        Args:
+            parent (object): Parent context (e.g., project or None).
+            entity_name (str): Name of the entity to delete.
+        """
         try:
-            self._view_entities(entities, entity_name)
+            collection = self._entity_manager.get_collection(parent)
+            self._view_entities(collection, entity_name)
             index = int(input(f"Enter {entity_name.lower()} number: ")) - 1
-            delete_callback(index)
+            self._entity_manager.remove_entity_by_index(parent, index)
             print(f"🗑️ {entity_name} deleted successfully.")
         except (NotFoundError, ValueError) as error:
             self._handle_error(error)

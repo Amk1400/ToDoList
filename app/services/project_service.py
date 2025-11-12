@@ -23,7 +23,7 @@ class ProjectManager(EntityManager[Project]):
         """Return entity type."""
         return Project
 
-    def _get_collection(self, parent=None) -> List[Project]:
+    def get_collection(self, parent=None) -> List[Project]:
         """Return all projects."""
         return self._projects
 
@@ -49,10 +49,6 @@ class ProjectManager(EntityManager[Project]):
     def _update_entity_detail(self, entity: Project, detail: Detail) -> None:
         """Apply updated detail."""
         entity.detail = detail
-
-    def get_all_projects(self) -> List[Project]:
-        """Return all projects."""
-        return self._projects
 
     def get_task_manager(self) -> TaskManager:
         """Return task manager."""

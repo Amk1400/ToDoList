@@ -2,7 +2,7 @@ from app.models.models import Project
 from app.services.project_service import ProjectManager
 from app.cli.task_menu import TaskMenu
 from app.cli.entity_menu import EntityMenu
-from app.exceptions.entity import NotFoundError
+from app.exceptions.entity import NotFoundError, ValidationError
 
 
 class ProjectMenu(EntityMenu[Project]):
@@ -16,7 +16,11 @@ class ProjectMenu(EntityMenu[Project]):
             parent_menu (EntityMenu): Parent menu for navigation.
         """
         self._project_manager: ProjectManager = project_manager
-        super().__init__("Project Management", parent_menu)
+        super().__init__(
+            "Project Management",
+            parent_menu,
+            entity_manager=self._project_manager
+        )
 
     def _setup_options(self) -> None:
         """Register project options."""
@@ -40,37 +44,24 @@ class ProjectMenu(EntityMenu[Project]):
 
     def _show_projects(self) -> None:
         """Display all projects."""
-        projects = self._project_manager.get_all_entities()
+        projects = self._project_manager.get_collection()
         self._view_entities(projects, "Project")
 
     def _create_project(self) -> None:
         """Create a new project."""
-        self._create_entity(
-            lambda detail: self._project_manager.create_entity(None, detail),
-            "Project"
-        )
+        self._create_entity(None, "Project")
 
     def _rename_project(self) -> None:
         """Rename a project."""
-        projects = self._project_manager.get_all_entities()
-        self._update_entity(
-            projects,
-            lambda index, detail: self._project_manager.update_entity_by_index(None, index, detail),
-            "Project"
-        )
+        self._update_entity_by_index(None, "Project")
 
     def _delete_project(self) -> None:
         """Delete a project."""
-        projects = self._project_manager.get_all_entities()
-        self._delete_entity(
-            projects,
-            lambda index: self._project_manager.remove_entity_by_index(None, index),
-            "Project"
-        )
+        self._delete_entity_by_index(None, "Project")
 
     def _open_task_menu(self) -> None:
         """Open the task menu for a project."""
-        projects = self._project_manager.get_all_entities()
+        projects = self._project_manager.get_collection()
         try:
             self._view_entities(projects, "Project")
             index = int(input("Enter project number: ")) - 1

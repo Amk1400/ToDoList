@@ -21,7 +21,7 @@ class TaskManager(EntityManager[Task]):
         """Return entity type."""
         return Task
 
-    def _get_collection(self, parent: Project | None = None) -> List[Task]:
+    def get_collection(self, parent: Project | None = None) -> List[Task]:
         """Return tasks of a project."""
         return parent.tasks if parent else self._tasks
 

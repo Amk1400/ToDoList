@@ -1,5 +1,6 @@
 from app.models.models import Project, Task
 from app.services.task_service import TaskManager
+from app.services.entity_service import EntityManager
 from app.cli.entity_menu import EntityMenu
 
 
@@ -16,7 +17,11 @@ class TaskMenu(EntityMenu[Task]):
         """
         self._task_manager: TaskManager = task_manager
         self._project: Project = project
-        super().__init__(f"Task Management for {project.detail.title}", parent_menu)
+        super().__init__(
+            f"Task Management for {project.detail.title}",
+            parent_menu,
+            entity_manager=self._task_manager
+        )
 
     def _setup_options(self) -> None:
         """Register task menu options."""
@@ -43,23 +48,12 @@ class TaskMenu(EntityMenu[Task]):
 
     def _create_task(self) -> None:
         """Create a new task."""
-        self._create_entity(
-            lambda detail: self._task_manager.create_entity(self._project, detail),
-            "Task"
-        )
+        self._create_entity(self._project, "Task")
 
     def _update_task(self) -> None:
         """Update a task detail."""
-        self._update_entity(
-            self._project.tasks,
-            lambda index, detail: self._task_manager.update_entity_by_index(self._project, index, detail),
-            "Task"
-        )
+        self._update_entity_by_index(self._project, "Task")
 
     def _delete_task(self) -> None:
         """Delete a task."""
-        self._delete_entity(
-            self._project.tasks,
-            lambda index: self._task_manager.remove_entity_by_index(self._project, index),
-            "Task"
-        )
+        self._delete_entity_by_index(self._project, "Task")

@@ -22,7 +22,7 @@ class EntityManager(BaseManager[T], ABC, Generic[T]):
             LimitExceededError: If limit exceeded.
             ValidationError: If validation fails.
         """
-        collection = self._get_collection(parent)
+        collection = self.get_collection(parent)
         if any(e.detail.title == detail.title for e in collection):
             raise AlreadyExistsError(self._entity_type().__name__)
         if len(collection) >= self._get_limit(parent):
@@ -45,7 +45,7 @@ class EntityManager(BaseManager[T], ABC, Generic[T]):
         Raises:
             NotFoundError: If invalid index.
         """
-        collection = self._get_collection(parent)
+        collection = self.get_collection(parent)
         try:
             return self.get_entity(collection, index)
         except NotFoundError as error:
@@ -61,7 +61,7 @@ class EntityManager(BaseManager[T], ABC, Generic[T]):
         Raises:
             NotFoundError: If invalid index.
         """
-        collection = self._get_collection(parent)
+        collection = self.get_collection(parent)
         try:
             self.remove_entity(collection, index)
         except NotFoundError as error:
@@ -79,7 +79,7 @@ class EntityManager(BaseManager[T], ABC, Generic[T]):
             NotFoundError: If not found.
             ValidationError: If invalid.
         """
-        collection = self._get_collection(parent)
+        collection = self.get_collection(parent)
         try:
             self.update_entity(collection, index, detail)
         except (NotFoundError, ValidationError) as error:
@@ -91,6 +91,6 @@ class EntityManager(BaseManager[T], ABC, Generic[T]):
         raise NotImplementedError
 
     @staticmethod
-    def _get_collection(parent) -> List[T]:
+    def get_collection(parent) -> List[T]:
         """Return entity collection."""
         raise NotImplementedError

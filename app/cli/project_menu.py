@@ -60,12 +60,9 @@ class ProjectMenu(EntityMenu[Project]):
     def _open_task_menu(self) -> None:
         """Open the task menu for a project."""
         projects = self._project_manager.get_all_projects()
-        if not projects:
-            print("⚠ No projects available.")
-            return
 
-        self._view_entities(projects, "Project")
         try:
+            self._view_entities(projects, "Project")
             index = int(input("Enter project number: ")) - 1
             project = projects[index]
             task_manager = self._project_manager.get_task_manager()

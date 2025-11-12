@@ -64,3 +64,8 @@ class BaseMenu(ABC):
             NotImplementedError: Must be implemented by subclasses.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def _handle_error(self, error: Exception) -> None:
+        """Abstract method to force child classes to implement error handling."""
+        raise NotImplementedError

@@ -23,17 +23,15 @@ class MainMenu(BaseMenu):
         self.add_option("2", self._exit_program)
 
     def _open_project_menu(self) -> None:
-        """Open the project management menu.
+        """Open project menu.
 
         Raises:
-            AppError: If the project menu fails to open.
+            Exception: Any exception is handled via `_handle_error`.
         """
         try:
             ProjectMenu(self._project_manager, parent_menu=self).run()
-        except AppError as error:
-            print(f"❌ {error}")
         except Exception as error:
-            print(f"⚠ Unexpected error: {error}")
+            self._handle_error(error)
 
     def _exit_program(self) -> None:
         """Exit.
@@ -43,3 +41,10 @@ class MainMenu(BaseMenu):
         """
         self._is_running = False
         print("👋 Exiting application...")
+
+    def _handle_error(self, error: Exception) -> None:
+        """Display formatted error."""
+        if hasattr(error, "message") and callable(getattr(error, "message")):
+            print(f"❌ {error.message()}")
+        else:
+            print(f"❌ {error}")

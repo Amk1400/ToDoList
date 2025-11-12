@@ -25,52 +25,30 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         """Register menu options."""
         raise NotImplementedError
 
-    def _view_entities(self, entities: List[T], entity_name: str) -> None:
-        """Render a list of entities.
+    @abstractmethod
+    def _get_extra_info(self, entity: T) -> str:
+        """Return entity-specific info."""
+        raise NotImplementedError
 
-        Args:
-            entities (List[T]): Entities to display.
-            entity_name (str): Name of the entity type.
-        """
+    @staticmethod
+    def _get_input_detail() -> Detail:
+        """Collect user input for detail."""
+        title = input("Enter title: ").strip()
+        description = input("Enter description: ").strip()
+        return Detail(title=title, description=description)
+
+    def _view_entities(self, entities: List[T], entity_name: str) -> None:
+        """Render a list of entities or raise NotFoundError if empty."""
         if not entities:
-            print(f"⚠ No {entity_name.lower()}s available.")
-            return
+            raise NotFoundError(entity_name)#we can not pass list[0] because its empty
         for index, entity in enumerate(entities, start=1):
             title = getattr(entity.detail, "title", "Untitled")
             description = getattr(entity.detail, "description", "No description")
             extra = self._get_extra_info(entity)
             print(f"{index}. {title} {extra}- {description}")
 
-    @abstractmethod
-    def _get_extra_info(self, entity: T) -> str:
-        """Return entity-specific info.
-
-        Args:
-            entity (T): Entity instance.
-
-        Returns:
-            str: Additional info beside the title.
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def _get_input_detail() -> Detail:
-        """Collect user input for detail.
-
-        Returns:
-            Detail: Title and description from user input.
-        """
-        title = input("Enter title: ").strip()
-        description = input("Enter description: ").strip()
-        return Detail(title=title, description=description)
-
     def _create_entity(self, create_callback: Callable[[Detail], None], entity_name: str) -> None:
-        """Create a new entity.
-
-        Args:
-            create_callback (Callable[[Detail], None]): Callback to create the entity.
-            entity_name (str): Name of the entity.
-        """
+        """Create a new entity."""
         try:
             detail = self._get_input_detail()
             create_callback(detail)
@@ -78,32 +56,17 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         except (ValidationError, LimitExceededError) as error:
             self._handle_error(error)
 
-    def _update_entity(self,
+    def _update_entity(
+        self,
         entities: List[T],
         update_callback: Callable[[int, Detail], None],
         entity_name: str,
     ) -> None:
-        """Update an entity.
-
-        Args:
-            entities (List[T]): List of entities.
-            update_callback (Callable[[int, Detail], None]): Update callback.
-            entity_name (str): Entity type name.
-
-        Raises:
-            NotFoundError: If index invalid.
-            ValidationError: If validation fails.
-        """
-        if not entities:
-            print(f"⚠ No {entity_name.lower()}s available.")
-            return
-
-        self._view_entities(entities, entity_name)
+        """Update an entity."""
         try:
+            self._view_entities(entities, entity_name)
             index = int(input(f"Enter {entity_name.lower()} number: ")) - 1
-            title = input("Enter new title: ").strip()
-            description = input("Enter new description: ").strip()
-            detail = Detail(title=title, description=description)
+            detail = self._get_input_detail()
             update_callback(index, detail)
             print(f"✅ {entity_name} updated successfully.")
         except (NotFoundError, ValidationError, ValueError) as error:
@@ -115,22 +78,9 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         delete_callback: Callable[[int], None],
         entity_name: str,
     ) -> None:
-        """Delete an entity.
-
-        Args:
-            entities (List[T]): Entities list.
-            delete_callback (Callable[[int], None]): Callback to delete entity.
-            entity_name (str): Name of the entity type.
-
-        Raises:
-            NotFoundError: If index invalid.
-        """
-        if not entities:
-            print(f"⚠ No {entity_name.lower()}s available.")
-            return
-
-        self._view_entities(entities, entity_name)
+        """Delete an entity."""
         try:
+            self._view_entities(entities, entity_name)
             index = int(input(f"Enter {entity_name.lower()} number: ")) - 1
             delete_callback(index)
             print(f"🗑️ {entity_name} deleted successfully.")
@@ -138,9 +88,8 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
             self._handle_error(error)
 
     def _handle_error(self, error: Exception) -> None:
-        """Display formatted error.
-
-        Args:
-            error (Exception): Exception to handle.
-        """
-        print(f"❌ {error}")
+        """Display formatted error."""
+        if hasattr(error, "message") and callable(getattr(error, "message")):
+            print(f"❌ {error.message()}")
+        else:
+            print(f"❌ {error}")

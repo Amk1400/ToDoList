@@ -1,50 +1,41 @@
 from abc import ABC
+from typing import Type, Union
 from app.models.models import Task, Project
 from . import AppError
 
+EntityType = Union[Task, Project]
+
 
 class EntityError(AppError, ABC):
-    """Base class for exceptions that automatically detect Task or Project domain.
+    """Base class for exceptions that detect Task or Project domain."""
 
-    Attributes:
-        entity (Task | Project): The entity instance causing the exception.
-    """
-
-    def __init__(self, entity: Task | Project) -> None:
-        """Initialize the entity-aware error.
-
-        Args:
-            entity (Task | Project): The entity that triggered the exception.
-        """
-        self.entity: Task | Project = entity
+    def __init__(self, entity_or_name: EntityType | str) -> None:
+        if isinstance(entity_or_name, str):
+            if entity_or_name == "Task":
+                self.entity: Type[EntityType] = Task
+            elif entity_or_name == "Project":
+                self.entity: Type[EntityType] = Project
+            else:
+                raise ValueError(f"Unsupported entity name: {entity_or_name}")
+        else:
+            self.entity: Type[EntityType] = type(entity_or_name)
 
     @property
     def domain(self) -> str:
-        """Determine the domain based on the entity type.
-
-        Returns:
-            str: 'Task' if the entity is a Task, 'Project' if the entity is a Project.
-
-        Raises:
-            TypeError: If the entity type is unsupported.
-        """
-        if isinstance(self.entity, Task):
+        """Return the domain based on the entity class."""
+        if issubclass(self.entity, Task):
             return "Task"
-        elif isinstance(self.entity, Project):
+        elif issubclass(self.entity, Project):
             return "Project"
         else:
-            raise TypeError(f"Unsupported entity type: {type(self.entity).__name__}")
+            raise TypeError(f"Unsupported entity type: {self.entity}")
 
 
 class AlreadyExistsError(EntityError):
     """Exception raised when an entity already exists."""
 
     def message(self) -> str:
-        """Return the exception message.
-
-        Returns:
-            str: Message indicating that creation failed because the entity already exists.
-        """
+        """Return the exception message."""
         return f"{self.domain} creation failed: already exists."
 
 
@@ -52,11 +43,7 @@ class LimitExceededError(EntityError):
     """Exception raised when the maximum allowed entities limit is exceeded."""
 
     def message(self) -> str:
-        """Return the exception message.
-
-        Returns:
-            str: Message indicating that creation failed due to limit exceeded.
-        """
+        """Return the exception message."""
         return f"{self.domain} creation failed: limit exceeded."
 
 
@@ -64,23 +51,15 @@ class NotFoundError(EntityError):
     """Exception raised when an entity is not found."""
 
     def message(self) -> str:
-        """Return the exception message.
-
-        Returns:
-            str: Message indicating that the entity was not found.
-        """
-        return f"{self.domain} not found."
+        """Return the exception message."""
+        return f"{self.domain} not found. You can create one :)"
 
 
 class ValidationError(EntityError):
     """Exception raised when entity validation fails."""
 
     def message(self) -> str:
-        """Return the exception message.
-
-        Returns:
-            str: Message indicating that validation failed for the entity.
-        """
+        """Return the exception message."""
         return f"{self.domain} validation failed."
 
 
@@ -88,9 +67,5 @@ class StatusError(EntityError):
     """Exception raised when an entity has an invalid status."""
 
     def message(self) -> str:
-        """Return the exception message.
-
-        Returns:
-            str: Message indicating that the entity's status is invalid.
-        """
+        """Return the exception message."""
         return f"{self.domain} status is invalid."

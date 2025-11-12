@@ -14,8 +14,8 @@ class TaskMenu(EntityMenu[Task]):
             project (Project): The project containing tasks.
             parent_menu (EntityMenu): Parent menu for navigation.
         """
-        self._task_manager = task_manager
-        self._project = project
+        self._task_manager: TaskManager = task_manager
+        self._project: Project = project
         super().__init__(f"Task Management for {project.detail.title}", parent_menu)
 
     def _setup_options(self) -> None:
@@ -44,7 +44,7 @@ class TaskMenu(EntityMenu[Task]):
     def _create_task(self) -> None:
         """Create a new task."""
         self._create_entity(
-            lambda detail: self._task_manager.create_task_for_project(self._project, detail),
+            lambda detail: self._task_manager.create_entity(self._project, detail),
             "Task"
         )
 
@@ -52,7 +52,7 @@ class TaskMenu(EntityMenu[Task]):
         """Update a task detail."""
         self._update_entity(
             self._project.tasks,
-            self._task_manager.update_task,
+            lambda index, detail: self._task_manager.update_entity_by_index(self._project, index, detail),
             "Task"
         )
 
@@ -60,6 +60,6 @@ class TaskMenu(EntityMenu[Task]):
         """Delete a task."""
         self._delete_entity(
             self._project.tasks,
-            self._task_manager.remove_task,
+            lambda index: self._task_manager.remove_entity_by_index(self._project, index),
             "Task"
         )

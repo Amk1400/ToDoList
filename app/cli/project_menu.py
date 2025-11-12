@@ -15,7 +15,7 @@ class ProjectMenu(EntityMenu[Project]):
             project_manager (ProjectManager): Handles project operations.
             parent_menu (EntityMenu): Parent menu for navigation.
         """
-        self._project_manager = project_manager
+        self._project_manager: ProjectManager = project_manager
         super().__init__("Project Management", parent_menu)
 
     def _setup_options(self) -> None:
@@ -40,27 +40,37 @@ class ProjectMenu(EntityMenu[Project]):
 
     def _show_projects(self) -> None:
         """Display all projects."""
-        projects = self._project_manager.get_all_projects()
+        projects = self._project_manager.get_all_entities()
         self._view_entities(projects, "Project")
 
     def _create_project(self) -> None:
         """Create a new project."""
-        self._create_entity(self._project_manager.create_project, "Project")
+        self._create_entity(
+            lambda detail: self._project_manager.create_entity(None, detail),
+            "Project"
+        )
 
     def _rename_project(self) -> None:
         """Rename a project."""
-        projects = self._project_manager.get_all_projects()
-        self._update_entity(projects, self._project_manager.update_project, "Project")
+        projects = self._project_manager.get_all_entities()
+        self._update_entity(
+            projects,
+            lambda index, detail: self._project_manager.update_entity_by_index(None, index, detail),
+            "Project"
+        )
 
     def _delete_project(self) -> None:
         """Delete a project."""
-        projects = self._project_manager.get_all_projects()
-        self._delete_entity(projects, self._project_manager.remove_project, "Project")
+        projects = self._project_manager.get_all_entities()
+        self._delete_entity(
+            projects,
+            lambda index: self._project_manager.remove_entity_by_index(None, index),
+            "Project"
+        )
 
     def _open_task_menu(self) -> None:
         """Open the task menu for a project."""
-        projects = self._project_manager.get_all_projects()
-
+        projects = self._project_manager.get_all_entities()
         try:
             self._view_entities(projects, "Project")
             index = int(input("Enter project number: ")) - 1

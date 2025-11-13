@@ -1,6 +1,6 @@
 from typing import List
 from app.core.config import AppConfig
-from app.models.models import Detail, Task, Project
+from app.models.models import Detail, Task, Project, Status
 from app.services.entity_service import EntityManager
 from app.exceptions.entity import ValidationError, StatusError, NotFoundError
 
@@ -44,7 +44,7 @@ class TaskManager(EntityManager[Task]):
         except Exception as error:
             raise ValidationError("Task") from error
 
-    def _update_entity_detail(self, entity: Task, detail: Detail, status: str) -> None:
+    def _update_entity_detail(self, entity: Task, detail: Detail, status: Status) -> None:
         """Apply new task detail."""
         entity.detail = detail
         entity.status = status

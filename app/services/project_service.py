@@ -1,6 +1,6 @@
 from typing import List
 from app.core.config import AppConfig
-from app.models.models import Detail, Project
+from app.models.models import Detail, Project, Status
 from app.services.entity_service import EntityManager
 from app.services.task_service import TaskManager
 from app.exceptions.entity import ValidationError
@@ -46,7 +46,7 @@ class ProjectManager(EntityManager[Project]):
         except Exception as error:
             raise ValidationError("Project") from error
 
-    def _update_entity_detail(self, entity: Project, detail: Detail, status: str) -> None:
+    def _update_entity_detail(self, entity: Project, detail: Detail, status: Status) -> None:
         """Apply updated detail."""
         entity.detail = detail
 

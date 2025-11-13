@@ -1,6 +1,6 @@
 from abc import ABC
 from typing import List, Generic, TypeVar
-from app.models.models import Detail
+from app.models.models import Detail, Status
 from app.services.base_service import BaseManager
 from app.exceptions.entity import AlreadyExistsError, LimitExceededError, ValidationError, NotFoundError
 
@@ -67,14 +67,14 @@ class EntityManager(BaseManager[T], ABC, Generic[T]):
         except NotFoundError as error:
             raise NotFoundError(self._entity_type().__name__) from error
 
-    def update_entity_by_index(self, parent, index: int, detail: Detail, status: str) -> None:
+    def update_entity_by_index(self, parent, index: int, detail: Detail, status: Status) -> None:
         """Update entity detail.
 
         Args:
             parent: Parent container.
             index (int): Entity index.
             detail (Detail): New detail.
-            status (str): task status
+            status (Status): task status
 
         Raises:
             NotFoundError: If not found.

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, List
-from app.models.models import Detail
+from app.models.models import Detail, Status
 from app.core.config import AppConfig
 from app.exceptions.entity import ValidationError, LimitExceededError, NotFoundError
 
@@ -65,13 +65,14 @@ class BaseManager(ABC, Generic[T]):
         entity = self.get_entity(items, index)
         items.remove(entity)
 
-    def update_entity(self, items: List[T], index: int, detail: Detail, status: str) -> None:
+    def update_entity(self, items: List[T], index: int, detail: Detail, status: Status) -> None:
         """Update entity detail.
 
         Args:
             items (List[T]): Entity list.
             index (int): Index to update.
             detail (Detail): New detail.
+            status (Status): New status if its updating task
 
         Raises:
             NotFoundError: If index invalid.
@@ -114,6 +115,6 @@ class BaseManager(ABC, Generic[T]):
         raise NotImplementedError
 
     @abstractmethod
-    def _update_entity_detail(self, entity: T, detail: Detail, status: str) -> None:
+    def _update_entity_detail(self, entity: T, detail: Detail, status: Status) -> None:
         """Update entity detail."""
         raise NotImplementedError

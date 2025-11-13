@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, List, Optional
-from app.models.models import Detail
+from typing import Generic, TypeVar, List, Optional, Tuple
+from app.models.models import Detail, Status
 from app.cli.base_menu import BaseMenu
 from app.services.entity_service import EntityManager
 from app.exceptions.entity import NotFoundError, ValidationError, LimitExceededError
@@ -28,11 +28,6 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         """Register menu options."""
         raise NotImplementedError
 
-    @abstractmethod
-    def _get_extra_info(self, entity: T) -> str:
-        """Return entity-specific info."""
-        raise NotImplementedError
-
     @staticmethod
     def _get_input_detail() -> Detail:
         """Collect user input for detail."""
@@ -41,30 +36,43 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         return Detail(title=title, description=description)
 
     def _view_entities(self, entities: List[T], entity_name: str) -> None:
-        """Render a list of entities or raise NotFoundError if empty.
-
-        Args:
-            entities (List[T]): List of entities.
-            entity_name (str): Name of entity type.
-
-        Raises:
-            NotFoundError: If list is empty.
-        """
+        """Render a list of entities or raise NotFoundError if empty."""
         if not entities:
             raise NotFoundError(entity_name)
         for index, entity in enumerate(entities, start=1):
-            title = getattr(entity.detail, "title", "Untitled")
-            description = getattr(entity.detail, "description", "No description")
-            extra = self._get_extra_info(entity)
-            print(f"{index}. {title} {extra}- {description}")
+            print(f"{index}. {entity}")
 
-    def _create_entity(self, parent: Optional[object], entity_name: str) -> None:
-        """Create a new entity using the associated EntityManager.
+    def _get_entity_update_input(
+            self, parent: object, entity_name: str
+    ) -> Tuple[int, Detail, Optional[Status]]:
+        """Collect entity index, updated details, and optional status.
 
         Args:
-            parent (Optional[object]): Parent context (e.g., project for tasks).
-            entity_name (str): Name of the entity.
+            parent (object): Parent context (project or None).
+            entity_name (str): Name of entity (Task or Project).
+
+        Returns:
+            Tuple[int, Detail, Optional[Status]]: Index, detail, and optional status.
         """
+        collection = self._entity_manager.get_collection(parent)
+        self._view_entities(collection, entity_name)
+        index = int(input(f"Enter {entity_name.lower()} number: ")) - 1
+        detail = self._get_input_detail()
+        status: Optional[Status] = None
+
+        if entity_name == "Task":
+            while True:
+                raw_status = input("Enter preferred status (todo/doing/done): ").strip().lower()
+                try:
+                    status = Status(raw_status)
+                    break
+                except ValueError:
+                    print("⚠ Invalid status. Please enter 'todo', 'doing', or 'done'.")
+
+        return index, detail, status
+
+    def _create_entity(self, parent: Optional[object], entity_name: str) -> None:
+        """Create a new entity using the associated EntityManager."""
         try:
             detail = self._get_input_detail()
             self._entity_manager.create_entity(parent, detail)
@@ -72,41 +80,17 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         except (ValidationError, LimitExceededError) as error:
             self._handle_error(error)
 
-    def _update_entity_by_index(self, parent: object, entity_name: str, status: str = "") -> None:
-        """Update an entity by selecting its index.
-
-        Args:
-            parent (object): Parent context (e.g., project or None).
-            entity_name (str): Name of the entity to update.
-            status (str): Task status if applicable.
-
-        Raises:
-            NotFoundError: If index invalid.
-            ValidationError: If validation fails.
-        """
+    def _update_entity_by_index(self, parent: object, entity_name: str) -> None:
+        """Update an entity by selecting its index."""
         try:
-            detail, index, status = self._get_updated_input(entity_name, parent, status)
+            index, detail, status = self._get_entity_update_input(parent, entity_name)
             self._entity_manager.update_entity_by_index(parent, index, detail, status)
             print(f"✅ {entity_name} updated successfully.")
         except (NotFoundError, ValidationError, ValueError) as error:
             self._handle_error(error)
 
-    def _get_updated_input(self, entity_name, parent, status):
-        collection = self._entity_manager.get_collection(parent)
-        self._view_entities(collection, entity_name)
-        index = int(input(f"Enter {entity_name.lower()} number: ")) - 1
-        detail = self._get_input_detail()
-        if entity_name.lower() == "task":
-            status = input("Enter status ('todo', 'doing', 'done'): ").strip()
-        return detail, index, status
-
     def _delete_entity_by_index(self, parent: object, entity_name: str) -> None:
-        """Delete an entity by selecting its index.
-
-        Args:
-            parent (object): Parent context (e.g., project or None).
-            entity_name (str): Name of the entity to delete.
-        """
+        """Delete an entity by selecting its index."""
         try:
             collection = self._entity_manager.get_collection(parent)
             self._view_entities(collection, entity_name)
@@ -117,11 +101,7 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
             self._handle_error(error)
 
     def _handle_error(self, error: Exception) -> None:
-        """Display formatted error.
-
-        Args:
-            error (Exception): Exception to handle.
-        """
+        """Display formatted error."""
         if hasattr(error, "message") and callable(getattr(error, "message")):
             print(f"❌ {error.message()}")
         else:

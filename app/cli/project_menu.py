@@ -2,19 +2,14 @@ from app.models.models import Project
 from app.services.project_service import ProjectManager
 from app.cli.task_menu import TaskMenu
 from app.cli.entity_menu import EntityMenu
-from app.exceptions.entity import NotFoundError, ValidationError
+from app.exceptions.entity import NotFoundError
 
 
 class ProjectMenu(EntityMenu[Project]):
     """Menu for managing projects."""
 
     def __init__(self, project_manager: ProjectManager, parent_menu: EntityMenu) -> None:
-        """Initialize the project menu.
-
-        Args:
-            project_manager (ProjectManager): Handles project operations.
-            parent_menu (EntityMenu): Parent menu for navigation.
-        """
+        """Initialize the project menu."""
         self._project_manager: ProjectManager = project_manager
         super().__init__(
             "Project Management",
@@ -31,17 +26,6 @@ class ProjectMenu(EntityMenu[Project]):
         self.add_option("5", self._open_task_menu)
         self.add_option("6", self._go_back)
 
-    def _get_extra_info(self, entity: Project) -> str:
-        """Return project info.
-
-        Args:
-            entity (Project): Project entity.
-
-        Returns:
-            str: Empty string for consistency.
-        """
-        return ""
-
     def _show_projects(self) -> None:
         """Display all projects."""
         projects = self._project_manager.get_collection()
@@ -53,7 +37,7 @@ class ProjectMenu(EntityMenu[Project]):
 
     def _rename_project(self) -> None:
         """Rename a project."""
-        self._update_entity_by_index(None, "Project", "")
+        self._update_entity_by_index(None, "Project")
 
     def _delete_project(self) -> None:
         """Delete a project."""

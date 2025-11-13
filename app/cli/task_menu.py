@@ -1,6 +1,5 @@
 from app.models.models import Project, Task
 from app.services.task_service import TaskManager
-from app.services.entity_service import EntityManager
 from app.cli.entity_menu import EntityMenu
 
 
@@ -8,13 +7,7 @@ class TaskMenu(EntityMenu[Task]):
     """Menu for managing tasks inside a project."""
 
     def __init__(self, task_manager: TaskManager, project: Project, parent_menu: EntityMenu) -> None:
-        """Initialize task menu.
-
-        Args:
-            task_manager (TaskManager): Handles task operations.
-            project (Project): The project containing tasks.
-            parent_menu (EntityMenu): Parent menu for navigation.
-        """
+        """Initialize task menu."""
         self._task_manager: TaskManager = task_manager
         self._project: Project = project
         super().__init__(
@@ -31,17 +24,6 @@ class TaskMenu(EntityMenu[Task]):
         self.add_option("4", self._delete_task)
         self.add_option("5", self._go_back)
 
-    def _get_extra_info(self, entity: Task) -> str:
-        """Return additional info for display.
-
-        Args:
-            entity (Task): Task to describe.
-
-        Returns:
-            str: Status info.
-        """
-        return f"[{entity.status}]"
-
     def _show_tasks(self) -> None:
         """Display all tasks."""
         self._view_entities(self._project.tasks, "Task")
@@ -52,7 +34,7 @@ class TaskMenu(EntityMenu[Task]):
 
     def _update_task(self) -> None:
         """Update a task detail."""
-        self._update_entity_by_index(self._project, "Task", "")
+        self._update_entity_by_index(self._project, "Task")
 
     def _delete_task(self) -> None:
         """Delete a task."""

@@ -1,42 +1,63 @@
 from dataclasses import dataclass, field
 from datetime import date
 from typing import List
+from enum import Enum
+
+
+class Status(Enum):
+    """Represents task status."""
+
+    TODO = "todo"
+    DOING = "doing"
+    DONE = "done"
 
 
 @dataclass
 class Detail:
-    """Represents an entity's metadata containing a title and description.
+    """Basic detail information.
 
     Attributes:
-        title (str): The name or title of the entity.
-        description (str): A short descriptive text about the entity.
+        title (str): The title of the entity.
+        description (str): The descriptive text of the entity.
     """
+
     title: str
     description: str
+
+    def __str__(self) -> str:
+        """Return formatted string."""
+        return f"{self.title} - {self.description}"
 
 
 @dataclass
 class Task:
-    """Represents a single task within a project.
+    """Task entity with detail and status.
 
     Attributes:
-        detail (Detail): The task's metadata containing title and description.
-        deadline (date):
-        status (str): The current task status; defaults to "todo".
-            Possible values: "todo", "doing", "done".
+        detail (Detail): The task's detail information.
+        status (Status): The current status of the task.
     """
+
     detail: Detail
-    deadline: date
-    status: str = "todo"
+    status: Status = Status.TODO
+
+    def __str__(self) -> str:
+        """Return formatted string."""
+        return f"{self.detail.title} [{self.status.value}] - {self.detail.description}"
 
 
 @dataclass
 class Project:
-    """Represents a project that can contain multiple tasks.
+    """Project entity containing tasks.
 
     Attributes:
-        detail (Detail): The project's metadata containing title and description.
-        tasks (List[Task]): A list of tasks belonging to this project.
+        detail (Detail): The project's detail information.
+        tasks (List[Task]): List of tasks under the project.
     """
+
     detail: Detail
     tasks: List[Task] = field(default_factory=list)
+
+    def __str__(self) -> str:
+        """Return formatted string."""
+        return f"{self.detail.title} ({len(self.tasks)} tasks) - {self.detail.description}"

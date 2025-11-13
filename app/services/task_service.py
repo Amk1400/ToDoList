@@ -1,129 +1,72 @@
-from typing import Optional
+from typing import List
 from app.core.config import AppConfig
-from app.models.models import Detail, Task, Project
-from app.services.base_service import BaseManager
+from app.models.models import Detail, Task, Project, Status
+from app.services.entity_service import EntityManager
+from app.exceptions.entity import ValidationError, StatusError, NotFoundError
 
 
-class TaskManager(BaseManager[Task]):
-    """Manager class responsible for handling all task-related operations."""
+class TaskManager(EntityManager[Task]):
+    """Manages all task-related operations."""
 
     def __init__(self, config: AppConfig) -> None:
-        """Initialize the task manager.
+        """Initialize task manager.
 
         Args:
-            config (AppConfig): Configuration object defining validation limits.
+            config (AppConfig): Configuration for task limits.
         """
         super().__init__(config)
+        self._tasks: List[Task] = []
 
-    def add_task(self, project: Project, detail: Detail) -> None:
-        """Add a new task to the given project.
+    def _entity_type(self) -> type:
+        """Return entity type."""
+        return Task
 
-        Args:
-            project (Project): The project to which the task is added.
-            detail (Detail): The title and description of the new task.
+    def get_collection(self, parent: Project | None = None) -> List[Task]:
+        """Return tasks of a project."""
+        return parent.tasks if parent else self._tasks
 
-        Raises:
-            OverflowError: If the maximum number of tasks is reached.
-            ValueError: If validation of task details fails.
-        """
-        self.create(project.tasks, detail, self._config.max_tasks)
-
-    def get_task(self, project: Project, task_index: int) -> Task:
-        """Retrieve a task by its index.
-
-        Args:
-            project (Project): The project containing the task.
-            task_index (int): The index of the task to retrieve.
-
-        Returns:
-            Task: The task object at the given index.
-
-        Raises:
-            IndexError: If the task index is invalid.
-        """
-        return self.get_entity(project.tasks, task_index)
-
-    def remove_task(self, project: Project, task_index: int) -> None:
-        """Remove a task from a given project.
-
-        Args:
-            project (Project): The project containing the task.
-            task_index (int): The index of the task to remove.
-
-        Raises:
-            IndexError: If the task index is invalid.
-        """
-        self.remove_entity(project.tasks, task_index)
-
-    def update_task(
-        self,
-        project: Project,
-        task_idx: int,
-        detail: Optional[Detail] = None,
-        status: Optional[str] = None,
-    ) -> None:
-        """Update a task’s details and/or status.
-
-        Args:
-            project (Project): The project containing the task.
-            task_idx (int): The index of the task to update.
-            detail (Optional[Detail]): New detail object (title, description).
-            status (Optional[str]): New status value ("todo", "doing", "done").
-
-        Raises:
-            ValueError: If the provided status is invalid.
-            IndexError: If the task index is invalid.
-        """
-        task = self.get_entity(project.tasks, task_idx)
-
-        if detail is not None:
-            self.update_entity(project.tasks, task_idx, detail)
-
-        if status is not None:
-            if status not in {"todo", "doing", "done"}:
-                raise ValueError("Invalid task status. Must be one of: todo, doing, done.")
-            task.status = status
-
-    def _entity_name(self) -> str:
-        """Return the entity name for display/logging.
-
-        Returns:
-            str: The string 'Task'.
-        """
-        return "Task"
+    def _get_limit(self, parent: Project | None = None) -> int:
+        """Return task limit."""
+        return self._config.max_tasks
 
     def _create_entity(self, detail: Detail) -> Task:
-        """Factory method to create a new task.
-
-        Args:
-            detail (Detail): The task's title and description.
-
-        Returns:
-            Task: A new task instance.
-        """
+        """Create task entity."""
         return Task(detail=detail)
 
     def _validate(self, detail: Detail) -> None:
-        """Validate task details according to config limits.
+        """Validate task detail."""
+        try:
+            self._validate_detail(
+                detail,
+                self._config.max_task_name_length,
+                self._config.max_task_description_length,
+            )
+        except Exception as error:
+            raise ValidationError("Task") from error
+
+    def _update_entity_detail(self, entity: Task, detail: Detail, status: Status) -> None:
+        """Apply new task detail."""
+        entity.detail = detail
+        entity.status = status
+
+    def toggle_task_status(self, index: int) -> None:
+        """Toggle completion status.
 
         Args:
-            detail (Detail): The detail object to validate.
+            index (int): Task index.
 
         Raises:
-            ValueError: If validation of title or description fails.
+            NotFoundError: If index invalid.
+            StatusError: If toggle fails.
         """
-        self._validate_detail(
-            detail,
-            self._config.max_task_name_length,
-            self._config.max_task_description_length,
-            "Task",
-        )
+        try:
+            task = self.get_entity(self._tasks, index)
+            task.is_completed = not task.is_completed
+        except NotFoundError as error:
+            raise NotFoundError("Task") from error
+        except Exception as error:
+            raise StatusError("Task") from error
 
-    def _update_entity_detail(self, entity: Task, detail: Detail) -> None:
-        """Apply updated detail data to a task entity.
-
-        Args:
-            entity (Task): The task being updated.
-            detail (Detail): The new detail data.
-        """
-        entity.detail = detail
+    def get_all_tasks(self) -> List[Task]:
+        """Return all tasks."""
+        return self._tasks

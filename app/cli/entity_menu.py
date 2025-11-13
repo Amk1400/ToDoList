@@ -48,21 +48,11 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         self._view_entities(collection, entity_name)
         return int(input(f"Enter {entity_name.lower()} number: ")) - 1
 
-    def _collect_task_status(self) -> Status:
-        """Prompt user to input valid task status."""
-        while True:
-            raw_status = input("Enter preferred status (todo/doing/done): ").strip().lower()
-            try:
-                return Status(raw_status)
-            except ValueError:
-                print("⚠ Invalid status. Please enter 'todo', 'doing', or 'done'.")
-
     def _collect_update_data(self, parent: object, entity_name: str) -> Tuple[int, Detail, Optional[Status]]:
         """Collect index, detail, and optional status for update."""
         index = self._select_entity_index(parent, entity_name)
         detail = self._get_input_detail()
-        status: Optional[Status] = self._collect_task_status() if entity_name == "Task" else None
-        return index, detail, status
+        return index, detail, None
 
     def _get_entity_update_input(self, parent: object, entity_name: str) -> Tuple[int, Detail, Optional[Status]]:
         """Collect entity index, updated details, and optional status."""

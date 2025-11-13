@@ -1,4 +1,6 @@
-from app.models.models import Project, Task
+from typing import Optional, Tuple
+
+from app.models.models import Project, Task, Status, Detail
 from app.services.task_service import TaskManager
 from app.cli.entity_menu import EntityMenu
 
@@ -39,3 +41,19 @@ class TaskMenu(EntityMenu[Task]):
     def _delete_task(self) -> None:
         """Delete a task."""
         self._delete_entity_by_index(self._project, "Task")
+
+    def _collect_task_status(self) -> Status:
+        """Prompt user to input valid task status."""
+        while True:
+            raw_status = input("Enter preferred status (todo/doing/done): ").strip().lower()
+            try:
+                return Status(raw_status)
+            except ValueError:
+                print("⚠ Invalid status. Please enter 'todo', 'doing', or 'done'.")
+
+    def _collect_update_data(self, parent: object, entity_name: str) -> Tuple[int, Detail, Optional[Status]]:
+        """Collect index, detail, and optional status for update."""
+        index = self._select_entity_index(parent, entity_name)
+        detail = self._get_input_detail()
+        status: Optional[Status] = self._collect_task_status() if entity_name == "Task" else None
+        return index, detail, status

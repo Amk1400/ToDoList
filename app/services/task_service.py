@@ -44,9 +44,10 @@ class TaskManager(EntityManager[Task]):
         except Exception as error:
             raise ValidationError("Task") from error
 
-    def _update_entity_detail(self, entity: Task, detail: Detail) -> None:
+    def _update_entity_detail(self, entity: Task, detail: Detail, status: str) -> None:
         """Apply new task detail."""
         entity.detail = detail
+        entity.status = status
 
     def toggle_task_status(self, index: int) -> None:
         """Toggle completion status.

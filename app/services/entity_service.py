@@ -67,13 +67,14 @@ class EntityManager(BaseManager[T], ABC, Generic[T]):
         except NotFoundError as error:
             raise NotFoundError(self._entity_type().__name__) from error
 
-    def update_entity_by_index(self, parent, index: int, detail: Detail) -> None:
+    def update_entity_by_index(self, parent, index: int, detail: Detail, status: str) -> None:
         """Update entity detail.
 
         Args:
             parent: Parent container.
             index (int): Entity index.
             detail (Detail): New detail.
+            status (str): task status
 
         Raises:
             NotFoundError: If not found.
@@ -81,7 +82,7 @@ class EntityManager(BaseManager[T], ABC, Generic[T]):
         """
         collection = self.get_collection(parent)
         try:
-            self.update_entity(collection, index, detail)
+            self.update_entity(collection, index, detail, status)
         except (NotFoundError, ValidationError) as error:
             raise type(error)(self._entity_type().__name__) from error
 

@@ -53,7 +53,7 @@ class ProjectMenu(EntityMenu[Project]):
 
     def _rename_project(self) -> None:
         """Rename a project."""
-        self._update_entity_by_index(None, "Project")
+        self._update_entity_by_index(None, "Project", "")
 
     def _delete_project(self) -> None:
         """Delete a project."""

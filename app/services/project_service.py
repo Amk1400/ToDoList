@@ -46,7 +46,7 @@ class ProjectManager(EntityManager[Project]):
         except Exception as error:
             raise ValidationError("Project") from error
 
-    def _update_entity_detail(self, entity: Project, detail: Detail) -> None:
+    def _update_entity_detail(self, entity: Project, detail: Detail, status: str) -> None:
         """Apply updated detail."""
         entity.detail = detail
 

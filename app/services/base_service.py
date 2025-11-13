@@ -65,7 +65,7 @@ class BaseManager(ABC, Generic[T]):
         entity = self.get_entity(items, index)
         items.remove(entity)
 
-    def update_entity(self, items: List[T], index: int, detail: Detail) -> None:
+    def update_entity(self, items: List[T], index: int, detail: Detail, status: str) -> None:
         """Update entity detail.
 
         Args:
@@ -79,7 +79,7 @@ class BaseManager(ABC, Generic[T]):
         """
         entity = self.get_entity(items, index)
         self._validate(detail)
-        self._update_entity_detail(entity, detail)
+        self._update_entity_detail(entity, detail, status)
 
     def _validate_detail(self, detail: Detail, max_title: int, max_desc: int) -> None:
         """Validate title and description length.
@@ -114,6 +114,6 @@ class BaseManager(ABC, Generic[T]):
         raise NotImplementedError
 
     @abstractmethod
-    def _update_entity_detail(self, entity: T, detail: Detail) -> None:
+    def _update_entity_detail(self, entity: T, detail: Detail, status: str) -> None:
         """Update entity detail."""
         raise NotImplementedError

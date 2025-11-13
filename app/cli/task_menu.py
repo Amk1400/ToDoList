@@ -52,7 +52,7 @@ class TaskMenu(EntityMenu[Task]):
 
     def _update_task(self) -> None:
         """Update a task detail."""
-        self._update_entity_by_index(self._project, "Task")
+        self._update_entity_by_index(self._project, "Task", "")
 
     def _delete_task(self) -> None:
         """Delete a task."""

@@ -41,7 +41,15 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         return Detail(title=title, description=description)
 
     def _view_entities(self, entities: List[T], entity_name: str) -> None:
-        """Render a list of entities or raise NotFoundError if empty."""
+        """Render a list of entities or raise NotFoundError if empty.
+
+        Args:
+            entities (List[T]): List of entities.
+            entity_name (str): Name of entity type.
+
+        Raises:
+            NotFoundError: If list is empty.
+        """
         if not entities:
             raise NotFoundError(entity_name)
         for index, entity in enumerate(entities, start=1):
@@ -64,22 +72,33 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         except (ValidationError, LimitExceededError) as error:
             self._handle_error(error)
 
-    def _update_entity_by_index(self, parent: object, entity_name: str) -> None:
+    def _update_entity_by_index(self, parent: object, entity_name: str, status: str = "") -> None:
         """Update an entity by selecting its index.
 
         Args:
             parent (object): Parent context (e.g., project or None).
             entity_name (str): Name of the entity to update.
+            status (str): Task status if applicable.
+
+        Raises:
+            NotFoundError: If index invalid.
+            ValidationError: If validation fails.
         """
         try:
-            collection = self._entity_manager.get_collection(parent)
-            self._view_entities(collection, entity_name)
-            index = int(input(f"Enter {entity_name.lower()} number: ")) - 1
-            detail = self._get_input_detail()
-            self._entity_manager.update_entity_by_index(parent, index, detail)
+            detail, index, status = self._get_updated_input(entity_name, parent, status)
+            self._entity_manager.update_entity_by_index(parent, index, detail, status)
             print(f"✅ {entity_name} updated successfully.")
         except (NotFoundError, ValidationError, ValueError) as error:
             self._handle_error(error)
+
+    def _get_updated_input(self, entity_name, parent, status):
+        collection = self._entity_manager.get_collection(parent)
+        self._view_entities(collection, entity_name)
+        index = int(input(f"Enter {entity_name.lower()} number: ")) - 1
+        detail = self._get_input_detail()
+        if entity_name.lower() == "task":
+            status = input("Enter status ('todo', 'doing', 'done'): ").strip()
+        return detail, index, status
 
     def _delete_entity_by_index(self, parent: object, entity_name: str) -> None:
         """Delete an entity by selecting its index.
@@ -98,7 +117,11 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
             self._handle_error(error)
 
     def _handle_error(self, error: Exception) -> None:
-        """Display formatted error."""
+        """Display formatted error.
+
+        Args:
+            error (Exception): Exception to handle.
+        """
         if hasattr(error, "message") and callable(getattr(error, "message")):
             print(f"❌ {error.message()}")
         else:

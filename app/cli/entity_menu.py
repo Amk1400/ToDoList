@@ -42,34 +42,31 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
         for index, entity in enumerate(entities, start=1):
             print(f"{index}. {entity}")
 
-    def _get_entity_update_input(
-            self, parent: object, entity_name: str
-    ) -> Tuple[int, Detail, Optional[Status]]:
-        """Collect entity index, updated details, and optional status.
-
-        Args:
-            parent (object): Parent context (project or None).
-            entity_name (str): Name of entity (Task or Project).
-
-        Returns:
-            Tuple[int, Detail, Optional[Status]]: Index, detail, and optional status.
-        """
+    def _select_entity_index(self, parent: object, entity_name: str) -> int:
+        """Prompt user to select an entity index."""
         collection = self._entity_manager.get_collection(parent)
         self._view_entities(collection, entity_name)
-        index = int(input(f"Enter {entity_name.lower()} number: ")) - 1
+        return int(input(f"Enter {entity_name.lower()} number: ")) - 1
+
+    def _collect_task_status(self) -> Status:
+        """Prompt user to input valid task status."""
+        while True:
+            raw_status = input("Enter preferred status (todo/doing/done): ").strip().lower()
+            try:
+                return Status(raw_status)
+            except ValueError:
+                print("⚠ Invalid status. Please enter 'todo', 'doing', or 'done'.")
+
+    def _collect_update_data(self, parent: object, entity_name: str) -> Tuple[int, Detail, Optional[Status]]:
+        """Collect index, detail, and optional status for update."""
+        index = self._select_entity_index(parent, entity_name)
         detail = self._get_input_detail()
-        status: Optional[Status] = None
-
-        if entity_name == "Task":
-            while True:
-                raw_status = input("Enter preferred status (todo/doing/done): ").strip().lower()
-                try:
-                    status = Status(raw_status)
-                    break
-                except ValueError:
-                    print("⚠ Invalid status. Please enter 'todo', 'doing', or 'done'.")
-
+        status: Optional[Status] = self._collect_task_status() if entity_name == "Task" else None
         return index, detail, status
+
+    def _get_entity_update_input(self, parent: object, entity_name: str) -> Tuple[int, Detail, Optional[Status]]:
+        """Collect entity index, updated details, and optional status."""
+        return self._collect_update_data(parent, entity_name)
 
     def _create_entity(self, parent: Optional[object], entity_name: str) -> None:
         """Create a new entity using the associated EntityManager."""
@@ -83,7 +80,7 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
     def _update_entity_by_index(self, parent: object, entity_name: str) -> None:
         """Update an entity by selecting its index."""
         try:
-            index, detail, status = self._get_entity_update_input(parent, entity_name)
+            index, detail, status = self._collect_update_data(parent, entity_name)
             self._entity_manager.update_entity_by_index(parent, index, detail, status)
             print(f"✅ {entity_name} updated successfully.")
         except (NotFoundError, ValidationError, ValueError) as error:
@@ -92,9 +89,7 @@ class EntityMenu(BaseMenu, ABC, Generic[T]):
     def _delete_entity_by_index(self, parent: object, entity_name: str) -> None:
         """Delete an entity by selecting its index."""
         try:
-            collection = self._entity_manager.get_collection(parent)
-            self._view_entities(collection, entity_name)
-            index = int(input(f"Enter {entity_name.lower()} number: ")) - 1
+            index = self._select_entity_index(parent, entity_name)
             self._entity_manager.remove_entity_by_index(parent, index)
             print(f"🗑️ {entity_name} deleted successfully.")
         except (NotFoundError, ValueError) as error:

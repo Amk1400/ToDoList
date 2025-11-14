@@ -1,52 +1,29 @@
-from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, List
-from app.models.models import Detail, Status
-from app.core.config import AppConfig
-from app.exceptions.entity import NotFoundError
+from abc import ABC
+from typing import Generic, TypeVar
+from app.models.models import Detail
 
 T = TypeVar("T")
 
 
 class BaseManager(ABC, Generic[T]):
-    """Generic base manager providing core CRUD and validation."""
+    """Base manager providing validation helpers only."""
 
-    def __init__(self, config: AppConfig) -> None:
+    def __init__(self, config) -> None:
         """Initialize with configuration."""
-        self._config: AppConfig = config
+        self._config = config
 
-    def create(self, items: List[T], detail: Detail) -> None:
-        """Append a new item after validation."""
-        self._validate(detail)
-        items.append(self._create(items, detail))
+    def _validate_detail(self, detail: Detail, max_title: int, max_description: int) -> None:
+        """Validate title and description lengths.
 
-    def get(self, items: List[T], index: int) -> T:
-        """Retrieve item by index."""
-        if not (0 <= index < len(items)):
-            raise NotFoundError("Item")
-        return items[index]
+        Args:
+            detail (Detail): Detail to validate.
+            max_title (int): Maximum title length.
+            max_description (int): Maximum description length.
 
-    def update(self, items: List[T], index: int, detail: Detail, status: Status | None) -> None:
-        """Update item at index."""
-        item = self.get(items, index)
-        self._validate(detail)
-        self._update(item, detail, status)
-
-    def delete(self, items: List[T], index: int) -> None:
-        """Delete item at index."""
-        item = self.get(items, index)
-        items.remove(item)
-
-    @abstractmethod
-    def _validate(self, detail: Detail) -> None:
-        """Validate detail."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def _create(self, items: List[T], detail: Detail) -> T:
-        """Return new instance."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def _update(self, item: T, detail: Detail, status: Status | None) -> None:
-        """Update an instance."""
-        raise NotImplementedError
+        Raises:
+            ValueError: If title or description exceed limits.
+        """
+        if not detail.title or len(detail.title) > max_title:
+            raise ValueError(f"Title must be 1-{max_title} chars")
+        if not detail.description or len(detail.description) > max_description:
+            raise ValueError(f"Description must be 1-{max_description} chars")

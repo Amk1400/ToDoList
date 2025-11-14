@@ -1,72 +1,42 @@
-from typing import List
-from app.core.config import AppConfig
-from app.models.models import Detail, Task, Project, Status
+from typing import Optional
+from app.models.models import Task, Detail, Status, Project
 from app.services.entity_service import EntityManager
-from app.exceptions.entity import ValidationError, StatusError, NotFoundError
+from app.core.config import AppConfig
 
 
 class TaskManager(EntityManager[Task]):
-    """Manages all task-related operations."""
+    """Manager for task domain rules."""
 
     def __init__(self, config: AppConfig) -> None:
-        """Initialize task manager.
-
-        Args:
-            config (AppConfig): Configuration for task limits.
-        """
+        """Initialize task manager."""
         super().__init__(config)
-        self._tasks: List[Task] = []
+        self._config = config
 
-    def _entity_type(self) -> type:
-        """Return entity type."""
-        return Task
-
-    def get_collection(self, parent: Project | None = None) -> List[Task]:
-        """Return tasks of a project."""
-        return parent.tasks if parent else self._tasks
-
-    def _get_limit(self, parent: Project | None = None) -> int:
-        """Return task limit."""
+    def _get_limit_count(self) -> int:
+        """Return max tasks allowed."""
         return self._config.max_tasks
 
-    def _create_entity(self, detail: Detail) -> Task:
-        """Create task entity."""
-        return Task(detail=detail)
+    def _get_limits(self) -> tuple[int, int]:
+        """Return max title and description length for tasks."""
+        return self._config.max_task_name_length, self._config.max_task_description_length
 
-    def _validate(self, detail: Detail) -> None:
-        """Validate task detail."""
-        try:
-            self._validate_detail(
-                detail,
-                self._config.max_task_name_length,
-                self._config.max_task_description_length,
-            )
-        except Exception as error:
-            raise ValidationError("Task") from error
+    def list_tasks_for_project(self, project: Project) -> list[Task]:
+        """Return tasks belonging to a project."""
+        return list(project.tasks)
 
-    def _update_entity_detail(self, entity: Task, detail: Detail, status: Status) -> None:
-        """Apply new task detail."""
-        entity.detail = detail
-        entity.status = status
+    def create_task_for_project(self, project: Project, task: Task, detail: Detail) -> Task:
+        """Create task inside a project."""
+        task = self.create_entity(task, detail)
+        project.tasks.append(task)
+        return task
 
-    def toggle_task_status(self, index: int) -> None:
-        """Toggle completion status.
+    def update_task_for_project(self, project: Project, index: int, detail: Detail, status: Optional[Status] = None) -> Task:
+        """Update task inside a project."""
+        task = self.update_entity(index, detail, status)
+        project.tasks[index] = task
+        return task
 
-        Args:
-            index (int): Task index.
-
-        Raises:
-            NotFoundError: If index invalid.
-            StatusError: If toggle fails.
-        """
-        try:
-            task = self.get_entity(self._tasks, index)
-            task.is_completed = not task.is_completed
-        except NotFoundError as error:
-            raise NotFoundError("Task") from error
-        except Exception as error:
-            raise StatusError("Task") from error
-
-    def get_all_tasks(self) -> List[Task]:
-        """Return all tasks."""
-        return self._tasks
+    def remove_task_from_project(self, project: Project, index: int) -> None:
+        """Remove task from project."""
+        self.remove_entity(index)
+        del project.tasks[index]

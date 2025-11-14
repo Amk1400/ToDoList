@@ -1,55 +1,26 @@
-from typing import List
-from app.core.config import AppConfig
-from app.models.models import Detail, Project, Status
+from app.models.models import Project, Detail
 from app.services.entity_service import EntityManager
 from app.services.task_service import TaskManager
-from app.exceptions.entity import ValidationError
+from app.core.config import AppConfig
 
 
 class ProjectManager(EntityManager[Project]):
-    """Manages project-level operations."""
+    """Manager for project domain rules."""
 
     def __init__(self, config: AppConfig) -> None:
-        """Initialize project manager.
-
-        Args:
-            config (AppConfig): Configuration for validation and limits.
-        """
+        """Initialize project manager with task manager."""
         super().__init__(config)
-        self._projects: List[Project] = []
-        self._task_manager: TaskManager = TaskManager(config)
+        self._task_manager = TaskManager(config)
+        self._config = config
 
-    def _entity_type(self) -> type:
-        """Return entity type."""
-        return Project
-
-    def get_collection(self, parent=None) -> List[Project]:
-        """Return all projects."""
-        return self._projects
-
-    def _get_limit(self, parent=None) -> int:
-        """Return max project limit."""
+    def _get_limit_count(self) -> int:
+        """Return max projects allowed."""
         return self._config.max_projects
 
-    def _create_entity(self, detail: Detail) -> Project:
-        """Create new project."""
-        return Project(detail=detail)
-
-    def _validate(self, detail: Detail) -> None:
-        """Validate project detail."""
-        try:
-            self._validate_detail(
-                detail,
-                self._config.max_project_name_length,
-                self._config.max_project_description_length,
-            )
-        except Exception as error:
-            raise ValidationError("Project") from error
-
-    def _update_entity_detail(self, entity: Project, detail: Detail, status: Status) -> None:
-        """Apply updated detail."""
-        entity.detail = detail
+    def _get_limits(self) -> tuple[int, int]:
+        """Return max title and description length for projects."""
+        return self._config.max_project_name_length, self._config.max_project_description_length
 
     def get_task_manager(self) -> TaskManager:
-        """Return task manager."""
+        """Return the task manager instance."""
         return self._task_manager

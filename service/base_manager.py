@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, TypeVar, Generic
 from datetime import date
-from models import Detail
+from models.models import Detail
 from core.config import AppConfig
 
 T = TypeVar("T")

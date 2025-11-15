@@ -1,6 +1,6 @@
 from typing import List
 from core.config import AppConfig
-from models import Detail, Project
+from models.models import Detail, Project
 from service.base_manager import BaseManager
 from service.task_manager import TaskManager
 

@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import date
 from core.config import AppConfig
-from models import Detail, Task, Project
+from models.models import Detail, Task, Project
 from service.base_manager import BaseManager
 
 

@@ -1,6 +1,6 @@
-from managers.project_manager import ProjectManager
-from menus.base_menu import BaseMenu
-from menus.project_menu import ProjectMenu
+from service.project_manager import ProjectManager
+from cli.base_menu import BaseMenu
+from cli.project_management import ProjectManagementMenu
 
 
 class MainMenu(BaseMenu):
@@ -28,7 +28,7 @@ class MainMenu(BaseMenu):
             Exception: If the project menu fails to open.
         """
         try:
-            ProjectMenu(self._project_manager, parent_menu=self).run()
+            ProjectManagementMenu(self._project_manager, parent_menu=self).run()
         except Exception as error:
             print(f"❌ Error while opening project menu: {error}")
 

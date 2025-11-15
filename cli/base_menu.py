@@ -3,7 +3,7 @@ from typing import Callable, Dict, Optional
 
 
 class BaseMenu(ABC):
-    """Abstract base class for all menus."""
+    """Abstract base class for all cli."""
 
     def __init__(self, title: str, parent_menu: Optional["BaseMenu"] = None) -> None:
         """Initialize a menu with a title and optional parent.

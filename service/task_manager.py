@@ -1,8 +1,8 @@
-from typing import List, Optional
+from typing import Optional
 from datetime import date
-from config import AppConfig
+from core.config import AppConfig
 from models import Detail, Task, Project
-from managers.base_manager import BaseManager
+from service.base_manager import BaseManager
 
 
 class TaskManager(BaseManager[Task]):

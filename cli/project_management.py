@@ -1,11 +1,11 @@
 from typing import List
-from models import Detail, Project
-from managers.project_manager import ProjectManager
-from menus.base_menu import BaseMenu
-from menus.task_menu import TaskMenu
+from models.models import Detail, Project
+from service.project_manager import ProjectManager
+from cli.base_menu import BaseMenu
+from cli.task_management import TaskManagementMenu
 
 
-class ProjectMenu(BaseMenu):
+class ProjectManagementMenu(BaseMenu):
     """Menu for managing project-related operations."""
 
     def __init__(self, project_manager: ProjectManager, parent_menu: BaseMenu) -> None:
@@ -101,6 +101,6 @@ class ProjectMenu(BaseMenu):
             project_index = int(input("Enter project number: ")) - 1
             project = projects[project_index]
             task_manager = self._project_manager.get_task_manager()
-            TaskMenu(task_manager, project, parent_menu=self).run()
+            TaskManagementMenu(task_manager, project, parent_menu=self).run()
         except Exception as error:
             print(f"❌ Error: {error}")

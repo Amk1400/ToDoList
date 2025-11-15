@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, TypeVar, Generic
 from datetime import date
 from models import Detail
-from config import AppConfig
+from core.config import AppConfig
 
 T = TypeVar("T")
 

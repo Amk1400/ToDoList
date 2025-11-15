@@ -1,10 +1,10 @@
 from datetime import datetime
-from managers.task_manager import TaskManager
-from models import Detail, Project
-from menus.base_menu import BaseMenu
+from service.task_manager import TaskManager
+from models.models import Detail, Project
+from cli.base_menu import BaseMenu
 
 
-class TaskMenu(BaseMenu):
+class TaskManagementMenu(BaseMenu):
     """Menu for managing tasks inside a project."""
 
     def __init__(self, task_manager: TaskManager, project: Project, parent_menu: BaseMenu) -> None:

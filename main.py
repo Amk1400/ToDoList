@@ -1,8 +1,8 @@
 import os
 from dotenv import load_dotenv
-from config import AppConfig
-from managers.project_manager import ProjectManager
-from menus.main_menu import MainMenu
+from core.config import AppConfig
+from service.project_manager import ProjectManager
+from cli.main_menu import MainMenu
 
 
 def main() -> None:

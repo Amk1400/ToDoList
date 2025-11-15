@@ -1,6 +1,6 @@
 from service.project_manager import ProjectManager
 from cli.base_menu import BaseMenu
-from cli.project_management import ProjectManagementMenu
+from cli.management.project_management import ProjectManagementMenu
 
 
 class MainMenu(BaseMenu):
@@ -17,9 +17,12 @@ class MainMenu(BaseMenu):
         self._setup_options()
 
     def _setup_options(self) -> None:
-        """Define and register menu options."""
-        self.add_option("1", self._open_project_menu)
-        self.add_option("2", self._exit_program)
+        """
+        TODO here i want two options
+        1. open project management menu
+        2. exit
+        """
+        ...
 
     def _open_project_menu(self) -> None:
         """project menu.

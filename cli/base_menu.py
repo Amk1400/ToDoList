@@ -14,32 +14,25 @@ class BaseMenu(ABC):
         """
         self._title: str = title
         self._parent_menu: Optional["BaseMenu"] = parent_menu
-        self._options: Dict[str, Callable[[], None]] = {}
-        self._is_running: bool = True
+        self._options = []#TODO
 
-    def add_option(self, key: str, action: Callable[[], None]) -> None:
-        """Add an option to the menu.
+    def add_option(self):
+        ...#TODO
 
-        Args:
-            key (str): Option key.
-            action (Callable): Action function.
-        """
-        self._options[key] = action
+
 
     def run(self) -> None:
         """Run the menu loop."""
-        self._is_running = True
-        while self._is_running:
-            print(f"\n--- {self._title} ---")
-            for key, action in self._options.items():
-                doc = action.__doc__.split(".")[0] if action.__doc__ else "Option"
-                print(f"{key}. {doc}")
-            choice = input("Choose an option: ").strip()
-            action = self._options.get(choice)
-            if action:
-                action()
-            else:
-                print("Invalid choice.")
+        print(f"\n--- {self._title} ---")
+        for key, action in self._options.items():
+            doc = action.__doc__.split(".")[0] if action.__doc__ else "Option"
+            print(f"{key}. {doc}")
+        choice = input("Choose an option: ").strip()
+        action = self._options.get(choice)
+        if action:
+            action()
+        else:
+            print("Invalid choice.")
 
     def _go_back(self) -> None:
         """Go back to previous menu."""

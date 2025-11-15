@@ -40,3 +40,8 @@ class Project:
     """
     detail: Detail
     tasks: List[Task] = field(default_factory=list)
+
+"""
+#TODO new class named option
+option contains a function and the name of option which is repreented in menus
+"""

@@ -19,14 +19,14 @@ class EntityShowMenu(BaseMenu):
         super().__init__("Show Entities", parent_menu)
 
     def _setup_options(self) -> None:
-        items = self._get_items()
         self._options = []
-        for idx, item in enumerate(items, start=1):
-            self._options.append(Option(
+        items = self._get_items()
+        for item in items:
+            self.add_option(Option(
                 f"{item.detail.title} - {item.detail.description}",
                 lambda i=item: EntityModifyMenu(self._manager, self._project, i, parent_menu=self).run()
             ))
-        self._options.append(Option("Back", self._go_back))
+        self.add_option(Option("Back", self._go_back))
 
     def _get_items(self):
         if isinstance(self._manager, ProjectManager):

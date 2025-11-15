@@ -1,4 +1,3 @@
-# cli/management/project_management.py
 from service.project_manager import ProjectManager
 from cli.management.entity_management import EntityManagementMenu
 

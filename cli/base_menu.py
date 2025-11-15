@@ -23,6 +23,7 @@ class BaseMenu(ABC):
 
     def _go_back(self) -> None:
         if self._parent_menu:
+            self._parent_menu._setup_options()
             self._parent_menu.run()
 
     def run(self) -> None:

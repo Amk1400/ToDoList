@@ -21,14 +21,19 @@ class ProjectModifyMenu(EntityModifyMenu):
         ]
 
     def _edit_entity(self) -> None:
-        title = input("Enter new title: ").strip()
-        description = input("Enter new description: ").strip()
+        detail = self._fetch_detail()
+        self._update_entity(detail)
+        self._go_back()
+
+    def _update_entity(self, detail):
         try:
-            self._manager.update_project(self._manager.get_all_projects().index(self._entity), Detail(title, description))
+            self._manager.update_project(
+                self._manager.get_all_projects().index(self._entity),
+                detail
+            )
             print("✅ Updated successfully.")
         except Exception as e:
-            print(f"❌ {e}")
-        self._go_back()
+            print(f"❌ Error updating project: {e}")
 
     def _perform_delete(self) -> None:
         self._manager.remove_project(self._manager.get_all_projects().index(self._entity))

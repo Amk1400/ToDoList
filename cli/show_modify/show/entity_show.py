@@ -1,6 +1,6 @@
 from typing import Optional, Union
 from cli.base_menu import BaseMenu
-from models.models import Project, Task, Option
+from models.models import Project, Option
 from service.project_manager import ProjectManager
 from service.task_manager import TaskManager
 from cli.show_modify.modify.entity_modify import EntityModifyMenu
@@ -13,10 +13,11 @@ class EntityShowMenu(BaseMenu):
         manager: Union[ProjectManager, TaskManager],
         project: Optional[Project] = None,
         parent_menu: Optional[BaseMenu] = None,
+        title: str = "Show Entities"
     ) -> None:
         self._manager = manager
         self._project = project
-        super().__init__("Show Entities", parent_menu)
+        super().__init__(title, parent_menu)
 
     def _setup_options(self) -> None:
         self._options = []

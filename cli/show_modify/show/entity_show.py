@@ -1,19 +1,19 @@
+from abc import ABC, abstractmethod
 from typing import Optional, Union
 from cli.base_menu import BaseMenu
-from models.models import Project, Option
+from models.models import Project, Task, Option
 from service.project_manager import ProjectManager
 from service.task_manager import TaskManager
-from cli.show_modify.modify.entity_modify import EntityModifyMenu
 
-class EntityShowMenu(BaseMenu):
-    """Show entities and select one to modify."""
+class EntityShowMenu(BaseMenu, ABC):
+    """Abstract base menu to show entities and select one to modify."""
 
     def __init__(
         self,
         manager: Union[ProjectManager, TaskManager],
         project: Optional[Project] = None,
         parent_menu: Optional[BaseMenu] = None,
-        title: str = "Show Entities"
+        title: str = "Show Entities",
     ) -> None:
         self._manager = manager
         self._project = project
@@ -21,17 +21,19 @@ class EntityShowMenu(BaseMenu):
 
     def _setup_options(self) -> None:
         self._options = []
-        items = self._get_items()
-        for item in items:
+        for entity in self._get_items():
             self.add_option(Option(
-                f"{item.detail.title} - {item.detail.description}",
-                lambda i=item: EntityModifyMenu(self._manager, self._project, i, parent_menu=self).run()
+                f"{entity.detail.title} - {entity.detail.description}",
+                lambda e=entity: self._open_modify(e)
             ))
         self.add_option(Option("Back", self._go_back))
 
+    @abstractmethod
     def _get_items(self):
-        if isinstance(self._manager, ProjectManager):
-            return self._manager.get_all_projects()
-        elif isinstance(self._manager, TaskManager) and self._project:
-            return self._project.tasks
-        return []
+        """Return the list of entities to display."""
+        pass
+
+    @abstractmethod
+    def _open_modify(self, entity):
+        """Open the correct modify menu for the entity."""
+        pass

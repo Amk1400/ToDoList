@@ -26,7 +26,12 @@ class EntityManagementMenu(BaseMenu):
         self.add_option(Option("Back", self._go_back))
 
     def _show_and_modify(self) -> None:
-        EntityShowMenu(self._manager, self._project, parent_menu=self).run()#TODO it should run taskshow if it is called by "show tasks and modify in modify menu of a project" else it should run project show
+        if isinstance(self._manager, ProjectManager):
+            from cli.show_modify.show.project_show import ProjectShowMenu
+            ProjectShowMenu(self._manager, parent_menu=self).run()
+        elif isinstance(self._manager, TaskManager) and self._project:
+            from cli.show_modify.show.task_show import TaskShowMenu
+            TaskShowMenu(self._manager, self._project, parent_menu=self).run()
 
     def _create_entity(self) -> None:
         from datetime import datetime

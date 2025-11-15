@@ -1,7 +1,18 @@
-"""
-TODO
-in its constructor it should pass "Select a Task of project # to modify" as a title to its
-parent which is entityshow
+from typing import Optional
+from cli.base_menu import BaseMenu
+from models.models import Project, Task
+from service.task_manager import TaskManager
+from cli.show_modify.show.entity_show import EntityShowMenu
+from cli.show_modify.modify.task_modify import TaskModifyMenu
 
-it should be called when i choose show tasks and midfy opton in a project modify menu
-"""
+class TaskShowMenu(EntityShowMenu):
+    """Show tasks of a project and open TaskModifyMenu."""
+
+    def __init__(self, manager: TaskManager, project: Project, parent_menu: Optional[BaseMenu] = None) -> None:
+        super().__init__(manager, project, parent_menu, title=f"Select a Task of Project '{project.detail.title}' to Modify")
+
+    def _get_items(self):
+        return self._project.tasks if self._project else []
+
+    def _open_modify(self, task: Task) -> None:
+        TaskModifyMenu(self._manager, self._project, task, parent_menu=self).run()

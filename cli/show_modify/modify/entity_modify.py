@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Optional, Union
 from cli.base_menu import BaseMenu
 from models.models import Project, Task, Option, Detail
@@ -5,8 +6,8 @@ from service.project_manager import ProjectManager
 from service.task_manager import TaskManager
 from datetime import datetime
 
-class EntityModifyMenu(BaseMenu):
-    """Modify or delete a selected entity."""
+class EntityModifyMenu(BaseMenu, ABC):
+    """Abstract base menu to modify or delete an entity."""
 
     def __init__(
         self,
@@ -27,32 +28,19 @@ class EntityModifyMenu(BaseMenu):
             Option("Back", self._go_back)
         ]
 
+    @abstractmethod
     def _edit_entity(self) -> None:
-        title = input("Enter new title: ").strip()
-        description = input("Enter new description: ").strip()
+        """Edit the entity; to be implemented in child class."""
+        pass
+
+    def _delete_entity(self) -> None:
         try:
-            if isinstance(self._entity, Project):
-                index = self._manager.get_all_projects().index(self._entity)
-                self._manager.update_project(index, Detail(title, description))
-            elif isinstance(self._entity, Task) and self._project:
-                index = self._project.tasks.index(self._entity)
-                deadline_str = input("Enter new deadline (YYYY-MM-DD) or leave empty: ").strip()
-                deadline = datetime.strptime(deadline_str, "%Y-%m-%d").date() if deadline_str else None
-                self._manager.update_task(self._project, index, Detail(title, description), deadline)
-            print("✅ Updated successfully.")
+            self._perform_delete()
         except Exception as e:
             print(f"❌ {e}")
         self._go_back()
 
-    def _delete_entity(self) -> None:
-        try:
-            if isinstance(self._entity, Project):
-                index = self._manager.get_all_projects().index(self._entity)
-                self._manager.remove_project(index)
-            elif isinstance(self._entity, Task) and self._project:
-                index = self._project.tasks.index(self._entity)
-                self._manager.remove_task(self._project, index)
-            print("✅ Deleted successfully.")
-        except Exception as e:
-            print(f"❌ {e}")
-        self._go_back()
+    @abstractmethod
+    def _perform_delete(self) -> None:
+        """Delete the entity; to be implemented in child class."""
+        pass

@@ -57,3 +57,13 @@ class TaskGateway(EntityGateway):
             deadline=optional_args.get("deadline"),
             status=optional_args.get("status")
         )
+
+    def delete_entity(self, task: Task) -> None:
+        """Delete task using manager."""
+        try:
+            idx = self._project.tasks.index(task)
+        except ValueError:
+            print("Task not found.")
+            return
+        self._manager.remove_task(self._project, idx)
+

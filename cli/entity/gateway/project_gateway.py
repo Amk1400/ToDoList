@@ -26,3 +26,13 @@ class ProjectGateway(EntityGateway):
             print("Project not found.")
             return
         self._manager.update_project(idx, detail)
+
+    def delete_entity(self, project: Project) -> None:
+        """Delete project using manager."""
+        projects = self._manager.get_all_projects()
+        try:
+            idx = projects.index(project)
+        except ValueError:
+            print("Project not found.")
+            return
+        self._manager.remove_project(idx)

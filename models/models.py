@@ -17,12 +17,18 @@ class Task:
     deadline: date
     status: str = "todo"
 
+    def __str__(self) -> str:
+        return f"{self.detail.title} ({self.detail.description}) - {self.status},{self.deadline}"
+
 
 @dataclass
 class Project:
     """Project containing tasks."""
     detail: Detail
     tasks: List[Task] = field(default_factory=list)
+
+    def __str__(self) -> str:
+        return f"{self.detail.title} ({self.detail.description})"
 
 
 @dataclass

@@ -42,6 +42,12 @@ class TaskManager(BaseManager[Task]):
         if status:
             task.status = self.validate_status(status)
 
+    def remove_task(self, project: Project, task_idx: int) -> None:
+        """Remove a task from the project by index."""
+        if not (0 <= task_idx < len(project.tasks)):
+            raise IndexError("Invalid task index.")
+        project.tasks.pop(task_idx)
+
     def parse_deadline(self, raw: str) -> date:
         """Parse and validate a raw deadline string."""
         raw = raw.strip()

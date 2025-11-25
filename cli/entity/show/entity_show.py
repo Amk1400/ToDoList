@@ -23,7 +23,7 @@ class EntityShowMenu(BaseMenu, ABC):
         self._options = []
         for entity in self._get_items():
             self.add_option(Option(
-                f"{entity.detail.title} - {entity.detail.description}",
+                entity,
                 lambda e=entity: self._open_modify(e)
             ))
         self.add_option(Option("Back", self._go_back))

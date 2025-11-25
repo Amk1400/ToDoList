@@ -1,7 +1,7 @@
 from typing import Optional
 from cli.base_menu import BaseMenu
 from cli.entity.management.task_management import TaskManagementMenu
-from cli.entity.show_modify.modify.entity_modify import EntityModifyMenu
+from cli.entity.modify.entity_modify import EntityModifyMenu
 from models.models import Project, Option, Detail
 from service.project_manager import ProjectManager
 from exceptions.validator import NonEmptyTextValidator

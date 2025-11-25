@@ -2,8 +2,8 @@ from typing import Optional
 from cli.base_menu import BaseMenu
 from models.models import Project, Task
 from service.task_manager import TaskManager
-from cli.entity.show_modify.show.entity_show import EntityShowMenu
-from cli.entity.show_modify.modify.task_modify import TaskModifyMenu
+from cli.entity.show.entity_show import EntityShowMenu
+from cli.entity.modify.task_modify import TaskModifyMenu
 
 class TaskShowMenu(EntityShowMenu):
     """Show tasks of a project and open TaskModifyMenu."""

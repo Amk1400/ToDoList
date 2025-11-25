@@ -26,10 +26,10 @@ class EntityManagementMenu(BaseMenu):
 
     def _show_and_modify(self) -> None:
         if isinstance(self._manager, ProjectManager):
-            from cli.entity.show_modify.show.project_show import ProjectShowMenu
+            from cli.entity.show import ProjectShowMenu
             ProjectShowMenu(self._manager, parent_menu=self).run()
         elif isinstance(self._manager, TaskManager) and self._project:
-            from cli.entity.show_modify.show.task_show import TaskShowMenu
+            from cli.entity.show import TaskShowMenu
             TaskShowMenu(self._manager, self._project, parent_menu=self).run()
 
     def _create_entity(self) -> None:

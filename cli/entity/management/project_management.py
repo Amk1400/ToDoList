@@ -1,5 +1,5 @@
 from service.project_manager import ProjectManager
-from cli.management.entity_management import EntityManagementMenu
+from cli.entity.management.entity_management import EntityManagementMenu
 
 class ProjectManagementMenu(EntityManagementMenu):
     """Project management menu inheriting entity management."""

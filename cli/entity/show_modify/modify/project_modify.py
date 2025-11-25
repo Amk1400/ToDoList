@@ -1,9 +1,11 @@
 from typing import Optional
 from cli.base_menu import BaseMenu
+from cli.entity.management.task_management import TaskManagementMenu
+from cli.entity.show_modify.modify.entity_modify import EntityModifyMenu
 from models.models import Project, Option, Detail
 from service.project_manager import ProjectManager
-from cli.show_modify.modify.entity_modify import EntityModifyMenu
-from cli.management.task_management import TaskManagementMenu
+from exceptions.validator import NonEmptyTextValidator
+
 
 class ProjectModifyMenu(EntityModifyMenu):
     """Modify a project and optionally show its tasks."""
@@ -20,12 +22,43 @@ class ProjectModifyMenu(EntityModifyMenu):
             Option("Back", self._go_back)
         ]
 
+    def _fetch_title(self) -> str:
+        while True:
+            try:
+                raw_title = input("Enter new title: ")
+                validated = NonEmptyTextValidator(
+                    raw_title,
+                    max_len=self._manager._config.max_project_name_length,
+                    field_name="Project title"
+                ).validate()
+                return validated.value
+            except Exception as e:
+                self.handle_exception(e)
+
+    def _fetch_description(self) -> str:
+        while True:
+            try:
+                raw_desc = input("Enter new description: ")
+                validated = NonEmptyTextValidator(
+                    raw_desc,
+                    max_len=self._manager._config.max_project_description_length,
+                    field_name="Project description"
+                ).validate()
+                return validated.value
+            except Exception as e:
+                self.handle_exception(e)
+
+    def _fetch_detail(self) -> Detail:
+        title = self._fetch_title()
+        description = self._fetch_description()
+        return Detail(title, description)
+
     def _edit_entity(self) -> None:
         detail = self._fetch_detail()
         self._update_entity(detail)
         self._go_back()
 
-    def _update_entity(self, detail):
+    def _update_entity(self, detail: Detail) -> None:
         try:
             self._manager.update_project(
                 self._manager.get_all_projects().index(self._entity),
@@ -33,7 +66,7 @@ class ProjectModifyMenu(EntityModifyMenu):
             )
             print("✅ Updated successfully.")
         except Exception as e:
-            print(f"❌ Error updating project: {e}")
+            self.handle_exception(e)
 
     def _perform_delete(self) -> None:
         self._manager.remove_project(self._manager.get_all_projects().index(self._entity))

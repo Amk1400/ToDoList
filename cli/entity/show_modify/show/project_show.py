@@ -2,8 +2,8 @@ from typing import Optional
 from cli.base_menu import BaseMenu
 from models.models import Project
 from service.project_manager import ProjectManager
-from cli.show_modify.show.entity_show import EntityShowMenu
-from cli.show_modify.modify.project_modify import ProjectModifyMenu
+from cli.entity.show_modify.show.entity_show import EntityShowMenu
+from cli.entity.show_modify.modify.project_modify import ProjectModifyMenu
 
 class ProjectShowMenu(EntityShowMenu):
     """Show all projects and open ProjectModifyMenu."""

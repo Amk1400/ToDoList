@@ -1,9 +1,8 @@
 from typing import Optional, Union
 from cli.base_menu import BaseMenu
-from models.models import Project, Task, Option
+from models.models import Project, Option
 from service.project_manager import ProjectManager
 from service.task_manager import TaskManager
-from cli.show_modify.show.entity_show import EntityShowMenu
 from models.models import Detail
 
 class EntityManagementMenu(BaseMenu):
@@ -27,10 +26,10 @@ class EntityManagementMenu(BaseMenu):
 
     def _show_and_modify(self) -> None:
         if isinstance(self._manager, ProjectManager):
-            from cli.show_modify.show.project_show import ProjectShowMenu
+            from cli.entity.show_modify.show.project_show import ProjectShowMenu
             ProjectShowMenu(self._manager, parent_menu=self).run()
         elif isinstance(self._manager, TaskManager) and self._project:
-            from cli.show_modify.show.task_show import TaskShowMenu
+            from cli.entity.show_modify.show.task_show import TaskShowMenu
             TaskShowMenu(self._manager, self._project, parent_menu=self).run()
 
     def _create_entity(self) -> None:
@@ -47,5 +46,5 @@ class EntityManagementMenu(BaseMenu):
                 self._manager.add_task(self._project, Detail(title, description), deadline)
                 print("✅ Task created.")
         except Exception as e:
-            print(f"❌ {e}")
+            self.handle_exception(e)
         self.run()

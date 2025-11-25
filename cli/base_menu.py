@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional, List, Callable
 from models.models import Option
-from exceptions.validator import validate_choice
-from exceptions.raisor import InvalidOptionException
+from exceptions.validator import NumberChoiceValidator
 
 
 class BaseMenu(ABC):
-    """Abstract base class for all CLI menus."""
+    """Base menu abstraction."""
 
     def __init__(self, title: str, parent_menu: Optional["BaseMenu"] = None) -> None:
         self._title: str = title
@@ -32,10 +31,34 @@ class BaseMenu(ABC):
             print(f"{idx}. {opt.title}")
 
         while True:
-            choice = input("Choose an option: ").strip()
+            raw_input_str = input("Choose an option: ").strip()
             try:
-                index = validate_choice(choice, 1, len(self._options)) - 1
-                self._options[index].action()
+                validated_result = NumberChoiceValidator(
+                    choice=raw_input_str,
+                    min_value=1,
+                    max_value=len(self._options)
+                ).validate()
+                validated_index = validated_result.as_int()-1
+
+                self._options[validated_index].action()
                 break
-            except InvalidOptionException as e:
-                print(f"❌ {e}")
+            except Exception as error:
+                self.handle_exception(error)
+
+    def handle_exception(
+        self,
+        error: Exception,
+        callback: Optional[Callable[[], None]] = None
+    ) -> None:
+        """Handle error and optionally execute a callback.
+
+        Args:
+            error (Exception): Raised exception.
+            callback (Callable|None): Optional callback to run after printing.
+
+        Returns:
+            None
+        """
+        print(f"❌ Error: {error}")
+        if callback:
+            callback()

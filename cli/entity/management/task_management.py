@@ -1,4 +1,4 @@
-from cli.management.entity_management import EntityManagementMenu
+from cli.entity.management.entity_management import EntityManagementMenu
 from service.task_manager import TaskManager
 from models.models import Project
 

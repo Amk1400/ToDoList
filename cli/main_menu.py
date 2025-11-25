@@ -1,6 +1,6 @@
 from service.project_manager import ProjectManager
 from cli.base_menu import BaseMenu
-from cli.management.project_management import ProjectManagementMenu
+from cli.entity.management.project_management import ProjectManagementMenu
 from models.models import Option
 
 class MainMenu(BaseMenu):

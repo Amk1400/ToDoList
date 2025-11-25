@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 from cli.base_menu import BaseMenu
-from models.models import Project, Task, Option, Detail
+from models.models import Project, Task
 from service.project_manager import ProjectManager
 from service.task_manager import TaskManager
-from exceptions.validator import NonEmptyTextValidator, DeadlineValidator, StatusValidator
 
 
 class EntityModifyMenu(BaseMenu, ABC):

@@ -1,5 +1,5 @@
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
 from core.config import AppConfig
 from models.models import Detail, Task, Project
 from service.base_manager import BaseManager
@@ -13,6 +13,7 @@ class TaskManager(BaseManager[Task]):
         self.current_project: Optional[Project] = None  # Must be set before adding/editing tasks
 
     def add_task(self, project: Project, detail: Detail, deadline: date) -> None:
+        """Add a new task to the project after validation."""
         self._validate(detail)
         self._validate_deadline(deadline)
         if len(project.tasks) >= self._config.max_tasks:
@@ -27,6 +28,7 @@ class TaskManager(BaseManager[Task]):
         deadline: Optional[date] = None,
         status: Optional[str] = None,
     ) -> None:
+        """Update an existing task's detail, deadline, or status."""
         if not (0 <= task_idx < len(project.tasks)):
             raise IndexError("Invalid task index.")
         task = project.tasks[task_idx]
@@ -38,9 +40,28 @@ class TaskManager(BaseManager[Task]):
             self._validate_deadline(deadline)
             task.deadline = deadline
         if status:
-            if status not in {"todo", "doing", "done"}:
-                raise ValueError("Invalid status. Must be todo/doing/done.")
-            task.status = status
+            task.status = self.validate_status(status)
+
+    def parse_deadline(self, raw: str) -> date:
+        """Parse and validate a raw deadline string."""
+        raw = raw.strip()
+        if not raw:
+            raise ValueError("Deadline is required.")
+        try:
+            parsed = datetime.strptime(raw, "%Y-%m-%d").date()
+        except ValueError:
+            raise ValueError("Deadline format must be YYYY-MM-DD.")
+        if parsed < date.today():
+            raise ValueError("Deadline cannot be in the past.")
+        return parsed
+
+    def validate_status(self, status: str) -> str:
+        """Validate task status string."""
+        allowed = {"todo", "doing", "done"}
+        s = status.strip().lower()
+        if s not in allowed:
+            raise ValueError("Status must be one of: todo, doing, done.")
+        return s
 
     def _entity_name(self) -> str:
         return "Task"

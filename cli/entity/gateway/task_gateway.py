@@ -1,17 +1,21 @@
 from typing import Optional
 from datetime import date
 from cli.entity.gateway.entity_gateway import EntityGateway
-from models.models import Task, Detail
-
+from models.models import Task, Detail, Project
 
 class TaskGateway(EntityGateway):
     """Gateway for fetching task inputs from CLI to Service."""
+
+    def __init__(self, manager, project: Project):
+        """TaskGateway needs both manager and project context."""
+        super().__init__(manager)
+        self._project = project
 
     def _fetch_deadline(self, entity: Optional[Task] = None) -> date:
         while True:
             raw_deadline = input("Enter task deadline (YYYY-MM-DD): ").strip()
             try:
-                deadline = self._manager.parse_deadline(raw_deadline)  # Service parses + validates
+                deadline = self._manager.parse_deadline(raw_deadline)  # service validates
                 return deadline
             except ValueError as e:
                 print(e)
@@ -38,22 +42,18 @@ class TaskGateway(EntityGateway):
 
     def _apply_create(self, detail: Detail, optional_args: dict) -> None:
         """Create task using service manager."""
-        # Expect optional_args to contain 'deadline'
         deadline = optional_args.get("deadline")
         if deadline is None:
             print("Deadline required to create task.")
             return
-        # Task must be added to a project (assume manager knows current project)
-        project = self._manager.current_project  # you need to set this before calling
-        self._manager.add_task(project, detail, deadline)
+        self._manager.add_task(self._project, detail, deadline)
 
     def _apply_edit(self, entity: Task, detail: Detail, optional_args: dict) -> None:
         """Edit task using service manager."""
-        project = self._manager.current_project  # you need to set current project context
         self._manager.update_task(
-            project,
-            project.tasks.index(entity),
-            detail=detail,
+            self._project,
+            self._project.tasks.index(entity),
+            detail,
             deadline=optional_args.get("deadline"),
             status=optional_args.get("status")
         )

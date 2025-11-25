@@ -1,19 +1,25 @@
-from typing import Optional, Union
+from typing import Optional
 from cli.base_menu import BaseMenu
 from models.models import Project, Option
-from service.project_manager import ProjectManager
-from service.task_manager import TaskManager
-from models.models import Detail
+
 
 class EntityManagementMenu(BaseMenu):
     """Base menu for entity management (projects or tasks)."""
 
     def __init__(
         self,
-        manager: Union[ProjectManager, TaskManager],
+        manager,
         project: Optional[Project] = None,
         parent_menu: Optional[BaseMenu] = None,
     ) -> None:
+        """
+        Initialize entity management menu.
+
+        Args:
+            manager: ProjectManager or TaskManager instance.
+            project (Optional[Project]): Parent project if managing tasks.
+            parent_menu (Optional[BaseMenu]): Parent menu.
+        """
         self._manager = manager
         self._project = project
         super().__init__("Entity Management", parent_menu)
@@ -25,26 +31,11 @@ class EntityManagementMenu(BaseMenu):
         self.add_option(Option("Back", self._go_back))
 
     def _show_and_modify(self) -> None:
-        if isinstance(self._manager, ProjectManager):
-            from cli.entity.show import ProjectShowMenu
-            ProjectShowMenu(self._manager, parent_menu=self).run()
-        elif isinstance(self._manager, TaskManager) and self._project:
-            from cli.entity.show import TaskShowMenu
-            TaskShowMenu(self._manager, self._project, parent_menu=self).run()
+        raise NotImplementedError("Override this method in subclass")
 
     def _create_entity(self) -> None:
-        from datetime import datetime
-        title = input("Enter title: ").strip()
-        description = input("Enter description: ").strip()
-        try:
-            if isinstance(self._manager, ProjectManager):
-                self._manager.create_project(Detail(title, description))
-                print("✅ Project created.")
-            elif isinstance(self._manager, TaskManager) and self._project:
-                deadline_str = input("Enter task deadline (YYYY-MM-DD): ").strip()
-                deadline = datetime.strptime(deadline_str, "%Y-%m-%d").date()
-                self._manager.add_task(self._project, Detail(title, description), deadline)
-                print("✅ Task created.")
-        except Exception as e:
-            self.handle_exception(e)
-        self.run()
+        """
+        Create a new entity by delegating to Gateway.
+        Subclasses override to choose the correct Gateway.
+        """
+        raise NotImplementedError("Override this method in subclass")

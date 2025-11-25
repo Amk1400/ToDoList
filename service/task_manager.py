@@ -9,38 +9,15 @@ class TaskManager(BaseManager[Task]):
     """Handles task-level operations for a project."""
 
     def __init__(self, config: AppConfig) -> None:
-        """Initialize task manager.
-
-        Args:
-            config (AppConfig): Application configuration.
-        """
         super().__init__(config)
+        self.current_project: Optional[Project] = None  # Must be set before adding/editing tasks
 
     def add_task(self, project: Project, detail: Detail, deadline: date) -> None:
-        """Add a new task to a project.
-
-        Args:
-            project (Project): The project to add the task to.
-            detail (Detail): Task detail.
-            deadline (date): Task deadline.
-
-        Raises:
-            OverflowError: If project already has max tasks.
-            ValueError: If validation fails.
-        """
-        self._validate_deadline(deadline)
         self._validate(detail)
+        self._validate_deadline(deadline)
         if len(project.tasks) >= self._config.max_tasks:
             raise OverflowError("Maximum number of tasks reached.")
         project.tasks.append(Task(detail=detail, deadline=deadline))
-
-    def get_task(self, project: Project, task_index: int) -> Task:
-        """Get a task by index."""
-        return self.get_entity(project.tasks, task_index)
-
-    def remove_task(self, project: Project, task_index: int) -> None:
-        """Remove a task by index."""
-        self.remove_entity(project.tasks, task_index)
 
     def update_task(
         self,
@@ -50,45 +27,31 @@ class TaskManager(BaseManager[Task]):
         deadline: Optional[date] = None,
         status: Optional[str] = None,
     ) -> None:
-        """Update task details, deadline, or status.
+        if not (0 <= task_idx < len(project.tasks)):
+            raise IndexError("Invalid task index.")
+        task = project.tasks[task_idx]
 
-        Args:
-            project (Project): The project containing the task.
-            task_idx (int): Task index.
-            detail (Optional[Detail]): New detail, if updating.
-            deadline (Optional[date]): New deadline, if updating.
-            status (Optional[str]): New status, if updating.
-
-        Raises:
-            ValueError: If invalid status or past deadline.
-        """
-        task = self.get_entity(project.tasks, task_idx)
-
-        if detail is not None:
-            self.update_entity(project.tasks, task_idx, detail)
-
-        if deadline is not None:
+        if detail:
+            self._validate(detail)
+            self._update_entity_detail(task, detail)
+        if deadline:
             self._validate_deadline(deadline)
             task.deadline = deadline
-
-        if status is not None:
+        if status:
             if status not in {"todo", "doing", "done"}:
-                raise ValueError("Invalid status. Must be one of: todo, doing, done.")
+                raise ValueError("Invalid status. Must be todo/doing/done.")
             task.status = status
 
     def _entity_name(self) -> str:
         return "Task"
 
     def _create_entity(self, detail: Detail) -> Task:
-        raise NotImplementedError("Use add_task() for Task creation with deadline.")
+        raise NotImplementedError("Use add_task() with a project and deadline.")
 
     def _validate(self, detail: Detail) -> None:
-        self._validate_detail(
-            detail,
-            self._config.max_task_name_length,
-            self._config.max_task_description_length,
-            "Task",
-        )
+        max_name = self._config.max_task_name_length
+        max_desc = self._config.max_task_description_length
+        self._validate_detail(detail, max_name, max_desc, "Task")
 
     def _update_entity_detail(self, entity: Task, detail: Detail) -> None:
         entity.detail = detail

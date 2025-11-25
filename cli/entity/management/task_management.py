@@ -1,9 +1,18 @@
+from cli.entity.gateway.task_gateway import TaskGateway
 from cli.entity.management.entity_management import EntityManagementMenu
-from service.task_manager import TaskManager
-from models.models import Project
+from cli.entity.show.task_show import TaskShowMenu
+
 
 class TaskManagementMenu(EntityManagementMenu):
-    """Task management menu for a specific project."""
-    def __init__(self, task_manager: TaskManager, project: Project, parent_menu):
-        super().__init__(task_manager, project, parent_menu)
-        self._title = f"Task Management: {project.detail.title}"
+    """Menu for managing tasks within a project."""
+
+    def _show_and_modify(self) -> None:
+        TaskShowMenu(self._manager, self._project, parent_menu=self).run()
+
+    def _create_entity(self) -> None:
+        try:
+            TaskGateway(self._manager, self._project).create_entity()
+            print("✅ Task created successfully.")
+        except Exception as e:
+            self.handle_exception(e)
+        self.run()

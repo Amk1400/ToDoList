@@ -11,20 +11,24 @@ class Detail:
 
 
 @dataclass
-class Task:
-    """Project task item."""
+class Entity:
+    """Abstract base for all entities."""
     detail: Detail
+
+
+@dataclass
+class Task(Entity):
+    """Project task item."""
     deadline: date
     status: str = "todo"
 
     def __str__(self) -> str:
-        return f"{self.detail.title} ({self.detail.description}) - {self.status},{self.deadline}"
+        return f"{self.detail.title} ({self.detail.description}) - {self.status}, {self.deadline}"
 
 
 @dataclass
-class Project:
+class Project(Entity):
     """Project containing tasks."""
-    detail: Detail
     tasks: List[Task] = field(default_factory=list)
 
     def __str__(self) -> str:

@@ -1,17 +1,16 @@
-from typing import Optional
 from datetime import date
 from cli.entity.gateway.entity_gateway import EntityGateway
 from models.models import Task, Detail, Project
+from service.task_manager import TaskManager
+
 
 class TaskGateway(EntityGateway):
-    """Gateway for fetching task inputs from CLI to Service."""
-
-    def __init__(self, manager, project: Project):
-        """TaskGateway needs both manager and project context."""
+    def __init__(self, manager: TaskManager, project: Project) -> None:
         super().__init__(manager)
-        self._project = project
+        self._manager: TaskManager = manager
+        self._project: Project = project
 
-    def _fetch_deadline(self, entity: Optional[Task] = None) -> date:
+    def _fetch_deadline(self) -> date:
         while True:
             raw_deadline = input("Enter task deadline (YYYY-MM-DD): ").strip()
             try:
@@ -20,7 +19,7 @@ class TaskGateway(EntityGateway):
             except ValueError as e:
                 print(e)
 
-    def _fetch_status(self, entity: Optional[Task] = None) -> str:
+    def _fetch_status(self) -> str:
         while True:
             status = input("Enter task status (todo/doing/done): ").strip()
             try:
@@ -36,8 +35,8 @@ class TaskGateway(EntityGateway):
 
     def edit_fetch_optional(self, entity: Task) -> dict:
         """Fetch optional task fields (deadline, status) for editing."""
-        deadline = self._fetch_deadline(entity)
-        status = self._fetch_status(entity)
+        deadline = self._fetch_deadline()
+        status = self._fetch_status()
         return {"deadline": deadline, "status": status}
 
     def _apply_create(self, detail: Detail, optional_args: dict) -> None:
@@ -67,3 +66,9 @@ class TaskGateway(EntityGateway):
             return
         self._manager.remove_task(self._project, idx)
 
+    def set_current_project(self,project: Project):
+        self._manager.set_current_project(project)
+
+    @property
+    def project(self):
+        return self._project

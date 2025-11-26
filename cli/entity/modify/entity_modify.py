@@ -1,55 +1,39 @@
-from abc import ABC, abstractmethod
-from typing import Optional, Union
+from abc import abstractmethod
+from typing import TypeVar, Generic
 from cli.base_menu import BaseMenu
-from models.models import Project, Task, Option
-from service.project_manager import ProjectManager
-from service.task_manager import TaskManager
+from cli.entity.gateway.entity_gateway import EntityGateway
+from models.models import Option
 
+G = TypeVar("G", bound=EntityGateway)
 
-class EntityModifyMenu(BaseMenu, ABC):
-    """Abstract base menu to modify or delete an entity."""
-
-    def __init__(
-        self,
-        manager: Union[ProjectManager, TaskManager],
-        project: Optional[Project],
-        entity: Union[Project, Task],
-        parent_menu: Optional[BaseMenu] = None,
-    ) -> None:
+class EntityModifyMenu(BaseMenu, Generic[G]):
+    def __init__(self, gateway: G, manager, entity, parent_menu=None):
+        self._gateway: G = gateway
         self._manager = manager
-        self._project = project
         self._entity = entity
         super().__init__("Modify Entity", parent_menu)
 
+
+
     def _edit_entity(self) -> None:
         try:
-            self._perform_edit()
+            self._gateway.edit_entity(self._entity)
             print(f"✅{self._entity.detail.title} Updated successfully.")
         except Exception as e:
             self.handle_exception(e)
         self._go_back()
 
-    def _delete_entity(self) -> None:
+    def delete_entity(self) -> None:
         try:
-            self._perform_delete()
+            self._gateway.delete_entity(self._entity)
             print(f"✅{self._entity.detail.title} Deleted successfully.")
         except Exception as e:
             self.handle_exception(e)
         self._go_back()
 
-    @abstractmethod
-    def _perform_edit(self) -> None:
-        """Edit the entity; to be implemented in child class."""
-        pass
-
-    @abstractmethod
-    def _perform_delete(self) -> None:
-        """Delete the entity; to be implemented in child class."""
-        pass
-
     def _setup_core_options(self) -> None:
         self.add_option(Option("Edit", self._edit_entity))
-        self.add_option(Option("Delete", self._delete_entity))
+        self.add_option(Option("Delete", self.delete_entity))
         self._add_show_tasks_option()
 
     @abstractmethod

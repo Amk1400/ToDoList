@@ -1,8 +1,16 @@
 from cli.entity.gateway.entity_gateway import EntityGateway
 from models.models import Project, Detail
+from service.project_manager import ProjectManager
+from service.task_manager import TaskManager
+
 
 class ProjectGateway(EntityGateway):
     """Gateway for fetching project inputs from CLI to Service."""
+
+    def __init__(self, manager: ProjectManager):
+        """Initialize with ProjectManager."""
+        super().__init__(manager)
+
 
     def _create_fetch_optional(self) -> dict:
         """No optional fields for project creation."""
@@ -36,3 +44,6 @@ class ProjectGateway(EntityGateway):
             print("Project not found.")
             return
         self._manager.remove_project(idx)
+
+    def get_task_manager(self) -> TaskManager:
+        return self._manager.get_task_manager()

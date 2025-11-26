@@ -14,8 +14,8 @@ class TaskManager(BaseManager[Task]):
 
     def add_task(self, project: Project, detail: Detail, deadline: date) -> None:
         """Add a new task to the project after validation."""
-        self._validate(detail)
-        self._validate_deadline(deadline)
+        self.validate(detail)
+        self.validate_deadline(deadline)
         if len(project.tasks) >= self._config.max_tasks:
             raise OverflowError("Maximum number of tasks reached.")
         project.tasks.append(Task(detail=detail, deadline=deadline))
@@ -34,10 +34,10 @@ class TaskManager(BaseManager[Task]):
         task = project.tasks[task_idx]
 
         if detail:
-            self._validate(detail)
+            self.validate(detail)
             self._update_entity_detail(task, detail)
         if deadline:
-            self._validate_deadline(deadline)
+            self.validate_deadline(deadline)
             task.deadline = deadline
         if status:
             task.status = self.validate_status(status)
@@ -75,10 +75,10 @@ class TaskManager(BaseManager[Task]):
     def _create_entity(self, detail: Detail) -> Task:
         raise NotImplementedError("Use add_task() with a project and deadline.")
 
-    def _validate(self, detail: Detail) -> None:
+    def validate(self, detail: Detail) -> None:
         max_name = self._config.max_task_name_length
         max_desc = self._config.max_task_description_length
-        self._validate_detail(detail, max_name, max_desc, "Task")
+        self.validate_detail(detail, max_name, max_desc, "Task")
 
     def _update_entity_detail(self, entity: Task, detail: Detail) -> None:
         entity.detail = detail

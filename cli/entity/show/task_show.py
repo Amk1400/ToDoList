@@ -1,15 +1,16 @@
 from typing import Optional
 from cli.base_menu import BaseMenu
-from models.models import Project, Task
-from service.task_manager import TaskManager
-from cli.entity.show.entity_show import EntityShowMenu
+from cli.entity.gateway.task_gateway import TaskGateway
 from cli.entity.modify.task_modify import TaskModifyMenu
+from cli.entity.show.entity_show import EntityShowMenu
+from models.models import Project, Task
+
 
 class TaskShowMenu(EntityShowMenu):
     """Show tasks of a project and open TaskModifyMenu."""
 
-    def __init__(self, manager: TaskManager, project: Project, parent_menu: Optional[BaseMenu] = None) -> None:
-        super().__init__(manager, project, parent_menu, title=f"Select a Task of Project '{project.detail.title}' to Modify")
+    def __init__(self, gateway: TaskGateway, project: "Project", parent_menu: Optional[BaseMenu] = None):
+        super().__init__(gateway, project, parent_menu, title=f"Select a Task of Project '{project.detail.title}' to Modify")
 
     def _open_modify(self, task: Task) -> None:
-        TaskModifyMenu(self._manager, self._project, task, parent_menu=self).run()
+        TaskModifyMenu(self._gateway, self._project, task, parent_menu=self).run()

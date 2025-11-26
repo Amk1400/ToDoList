@@ -1,13 +1,14 @@
-from service.project_manager import ProjectManager
 from cli.base_menu import BaseMenu
-from cli.entity.management.project_management import ProjectManagementMenu
 from models.models import Option
+from cli.entity.management.project_management import ProjectManagementMenu
+from cli.entity.gateway.project_gateway import ProjectGateway
+
 
 class MainMenu(BaseMenu):
-    """Main menu providing access to project and task management."""
+    """Main menu providing access to project management."""
 
-    def __init__(self, project_manager: ProjectManager) -> None:
-        self._project_manager = project_manager
+    def __init__(self, project_gateway: ProjectGateway) -> None:
+        self._project_gateway = project_gateway
         super().__init__("Main Menu")
 
     def _setup_options(self) -> None:
@@ -19,7 +20,7 @@ class MainMenu(BaseMenu):
         return None
 
     def _open_project_menu(self) -> None:
-        ProjectManagementMenu(self._project_manager, parent_menu=self).run()
+        ProjectManagementMenu(self._project_gateway, parent_menu=self).run()
 
     def _exit_program(self) -> None:
         print("👋 Exiting application...")

@@ -18,13 +18,13 @@ class ProjectManager(BaseManager[Project]):
             raise OverflowError("Maximum number of projects reached.")
         if any(p.detail.title == detail.title for p in self._projects):
             raise ValueError("Project title must be unique.")
-        self._validate(detail)
+        self.validate(detail)
         self._projects.append(self._create_entity(detail))
 
     def update_project(self, idx: int, detail: Detail) -> None:
         if not (0 <= idx < len(self._projects)):
             raise IndexError("Invalid project index.")
-        self._validate(detail)
+        self.validate(detail)
         self._update_entity_detail(self._projects[idx], detail)
 
     def get_project(self, idx: int) -> Project:
@@ -48,10 +48,10 @@ class ProjectManager(BaseManager[Project]):
     def _create_entity(self, detail: Detail) -> Project:
         return Project(detail=detail)
 
-    def _validate(self, detail: Detail) -> None:
+    def validate(self, detail: Detail) -> None:
         max_name = self._config.max_project_name_length
         max_desc = self._config.max_project_description_length
-        self._validate_detail(detail, max_name, max_desc, "Project")
+        self.validate_detail(detail, max_name, max_desc, "Project")
 
     def _update_entity_detail(self, entity: Project, detail: Detail) -> None:
         entity.detail = detail

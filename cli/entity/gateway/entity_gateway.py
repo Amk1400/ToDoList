@@ -1,46 +1,42 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Union
-from models.models import Detail
-from service.project_manager import ProjectManager
-from service.task_manager import TaskManager
+from typing import List
+from models.models import Detail, Entity, Task, Project
 
 
 class EntityGateway(ABC):
     """Abstract gateway for fetching entity data from CLI to Service."""
 
-    def __init__(self, manager: Union[ProjectManager, TaskManager]) -> None:
-        """
-        Initialize gateway with service manager.
-
-        Args:
-            manager (Union[ProjectManager, TaskManager]): Service manager instance for validation.
-        """
+    def __init__(self, manager) -> None:
+        """Accept manager instance as input."""
         self._manager = manager
 
-    def fetch_title(self, entity: Optional[object] = None) -> str:
+    def get_entities(self)  -> List[Project | Task] | None:
+        return self._manager.get_entities()
+
+    def fetch_title(self) -> str:
         """Fetch title from user input; retry until valid according to service."""
         while True:
             title = input("Enter title: ").strip()
             try:
-                self._manager._validate_title(title)
+                self._manager.validate_title(title)
                 return title
             except ValueError as e:
                 print(e)
 
-    def fetch_description(self, entity: Optional[object] = None) -> str:
+    def fetch_description(self) -> str:
         """Fetch description from user input; retry until valid according to service."""
         while True:
             description = input("Enter description: ").strip()
             try:
-                self._manager._validate_description(description)
+                self._manager.validate_description(description)
                 return description
             except ValueError as e:
                 print(e)
 
-    def fetch_detail(self, entity: Optional[object] = None) -> Detail:
+    def fetch_detail(self) -> Detail:
         """Fetch Detail object by sequentially fetching title and description."""
-        title = self.fetch_title(entity)
-        description = self.fetch_description(entity)
+        title = self.fetch_title()
+        description = self.fetch_description()
         return Detail(title=title, description=description)
 
     def create_entity(self) -> None:
@@ -70,9 +66,13 @@ class EntityGateway(ABC):
 
     def edit_entity(self, entity: object) -> None:
         """Fetch all required inputs and apply edition through service."""
-        detail = self.fetch_detail(entity)
+        detail = self.fetch_detail()
         optional_args = self.edit_fetch_optional(entity)
         self._apply_edit(entity, detail, optional_args)
+
+    @abstractmethod
+    def delete_entity(self, entity: Entity):
+        raise NotImplementedError
 
     @abstractmethod
     def edit_fetch_optional(self, entity: object) -> dict:

@@ -83,6 +83,10 @@ class TaskManager(BaseManager[Task]):
     def _update_entity_detail(self, entity: Task, detail: Detail) -> None:
         entity.detail = detail
 
+    def set_current_project(self, project: Project) -> None:
+        """Set the active project for task operations."""
+        self.current_project = project
+
     def assert_can_create(self) -> None:
         """Ensure task count is below limit."""
         if not self.current_project:

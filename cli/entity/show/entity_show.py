@@ -24,10 +24,8 @@ class EntityShowMenu(BaseMenu, ABC):
             entity_option = Option(str(entity),lambda e=entity: self._open_modify(e))
             self.add_option(entity_option)
 
-    @abstractmethod
     def _get_items(self):
-        """Return the list of entities to display."""
-        pass
+        return self._manager.get_entities()
 
     @abstractmethod
     def _open_modify(self, entity):

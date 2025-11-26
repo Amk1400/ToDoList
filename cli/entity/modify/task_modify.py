@@ -16,17 +16,8 @@ class TaskModifyMenu(EntityModifyMenu):
     def _add_show_tasks_option(self) -> None:
         return None
 
-    def _edit_entity(self) -> None:
-        try:
-            TaskGateway(self._manager, self._project).edit_entity(self._entity)
-            print("✅ Updated successfully.")
-        except Exception as e:
-            self.handle_exception(e)
-        self._go_back()
+    def _perform_edit(self) -> None:
+        TaskGateway(self._manager, self._project).edit_entity(self._entity)
 
     def _perform_delete(self) -> None:
-        try:
-            TaskGateway(self._manager, self._project).delete_entity(self._entity)
-            print("✅ Deleted successfully.")
-        except Exception as e:
-            self.handle_exception(e)
+        TaskGateway(self._manager, self._project).delete_entity(self._entity)

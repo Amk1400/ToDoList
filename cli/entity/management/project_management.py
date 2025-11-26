@@ -9,12 +9,5 @@ class ProjectManagementMenu(EntityManagementMenu):
     def _show_and_modify(self) -> None:
         ProjectShowMenu(self._manager, parent_menu=self).run()
 
-    def _create_entity(self) -> None:
-        try:
-            ProjectGateway(self._manager).create_entity()
-            print("✅ Project created successfully.")
-        except Exception as e:
-            self.handle_exception(e)
-        self.run()
-
-
+    def _perform_creation(self) -> None:
+        ProjectGateway(self._manager).create_entity()

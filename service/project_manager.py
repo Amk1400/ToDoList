@@ -36,7 +36,7 @@ class ProjectManager(BaseManager[Project]):
         project = self.get_project(idx)
         self._projects.remove(project)
 
-    def get_all_projects(self) -> List[Project]:
+    def get_entities(self) -> List[Project]:
         return self._projects
 
     def get_task_manager(self) -> TaskManager:

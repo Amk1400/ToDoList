@@ -10,7 +10,7 @@ class TaskManager(BaseManager[Task]):
 
     def __init__(self, config: AppConfig) -> None:
         super().__init__(config)
-        self.current_project: Optional[Project] = None  # Must be set before adding/editing tasks
+        self.current_project: Optional[Project] = None
 
     def add_task(self, project: Project, detail: Detail, deadline: date) -> None:
         """Add a new task to the project after validation."""
@@ -91,5 +91,8 @@ class TaskManager(BaseManager[Task]):
         """Ensure task count is below limit."""
         if not self.current_project:
             raise ValueError("Project must be selected before adding tasks.")
-        if len(self.current_project.tasks) >= self._config.max_tasks:
+        if len(self.get_entities()) >= self._config.max_tasks:
             raise OverflowError("Maximum task count reached.")
+
+    def get_entities(self):
+        return self.current_project.tasks

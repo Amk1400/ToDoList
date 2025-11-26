@@ -11,8 +11,5 @@ class TaskShowMenu(EntityShowMenu):
     def __init__(self, manager: TaskManager, project: Project, parent_menu: Optional[BaseMenu] = None) -> None:
         super().__init__(manager, project, parent_menu, title=f"Select a Task of Project '{project.detail.title}' to Modify")
 
-    def _get_items(self):
-        return self._project.tasks if self._project else []
-
     def _open_modify(self, task: Task) -> None:
         TaskModifyMenu(self._manager, self._project, task, parent_menu=self).run()

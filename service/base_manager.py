@@ -50,6 +50,10 @@ class BaseManager(ABC, Generic[T]):
         raise NotImplementedError
 
     @abstractmethod
+    def get_entities(self) -> List[T]:
+        raise NotImplementedError
+
+    @abstractmethod
     def assert_can_create(self) -> None:
         raise NotImplementedError
 

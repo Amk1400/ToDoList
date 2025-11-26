@@ -17,20 +17,11 @@ class ProjectModifyMenu(EntityModifyMenu):
     def _add_show_tasks_option(self) -> None:
         self.add_option(Option("Show Tasks", self._show_tasks))
 
-    def _edit_entity(self) -> None:
-        try:
-            ProjectGateway(self._manager).edit_entity(self._entity)
-            print("✅ Updated successfully.")
-        except Exception as e:
-            self.handle_exception(e)
-        self._go_back()
+    def _perform_edit(self) -> None:
+        ProjectGateway(self._manager).edit_entity(self._entity)
 
     def _perform_delete(self) -> None:
-        try:
-            ProjectGateway(self._manager).delete_entity(self._entity)
-            print("✅ Deleted successfully.")
-        except Exception as e:
-            self.handle_exception(e)
+        ProjectGateway(self._manager).delete_entity(self._entity)
 
     def _show_tasks(self) -> None:
         TaskManagementMenu(self._manager.get_task_manager(), self._entity, parent_menu=self).run()

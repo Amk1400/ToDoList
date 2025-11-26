@@ -21,18 +21,26 @@ class EntityModifyMenu(BaseMenu, ABC):
         self._entity = entity
         super().__init__("Modify Entity", parent_menu)
 
-    @abstractmethod
     def _edit_entity(self) -> None:
-        """Edit the entity; to be implemented in child class."""
-        pass
+        try:
+            self._perform_edit()
+            print(f"✅{self._entity.detail.title} Updated successfully.")
+        except Exception as e:
+            self.handle_exception(e)
+        self._go_back()
 
     def _delete_entity(self) -> None:
         try:
             self._perform_delete()
-            print("✅ Deleted successfully.")
+            print(f"✅{self._entity.detail.title} Deleted successfully.")
         except Exception as e:
             self.handle_exception(e)
         self._go_back()
+
+    @abstractmethod
+    def _perform_edit(self) -> None:
+        """Edit the entity; to be implemented in child class."""
+        pass
 
     @abstractmethod
     def _perform_delete(self) -> None:

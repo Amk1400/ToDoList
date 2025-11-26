@@ -11,8 +11,5 @@ class ProjectShowMenu(EntityShowMenu):
     def __init__(self, manager: ProjectManager, parent_menu: Optional[BaseMenu] = None) -> None:
         super().__init__(manager, parent_menu=parent_menu, title="Select a Project to Modify")
 
-    def _get_items(self):
-        return self._manager.get_all_projects()
-
     def _open_modify(self, project: Project) -> None:
         ProjectModifyMenu(self._manager, project, parent_menu=self).run()

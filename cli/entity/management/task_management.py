@@ -17,10 +17,5 @@ class TaskManagementMenu(EntityManagementMenu):
     def _show_and_modify(self) -> None:
         TaskShowMenu(self._manager, self._project, parent_menu=self).run()
 
-    def _create_entity(self) -> None:
-        try:
-            TaskGateway(self._manager, self._project).create_entity()
-            print("✅ Task created successfully.")
-        except Exception as e:
-            self.handle_exception(e)
-        self.run()
+    def _perform_creation(self) -> None:
+        TaskGateway(self._manager, self._project).create_entity()

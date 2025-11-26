@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Optional
 from cli.base_menu import BaseMenu
 from models.models import Project, Option
@@ -23,19 +24,24 @@ class EntityManagementMenu(BaseMenu):
         self._manager = manager
         self._project = project
 
-        self._entity = "Task" if self._project else "Project"
-        super().__init__(f"{self._entity} Management", parent_menu)
+        self._entity_type = "Task" if self._project else "Project"
+        super().__init__(f"{self._entity_type} Management", parent_menu)
 
     def _setup_core_options(self) -> None:
-        self.add_option(Option(f"Show & Modify {self._entity}s", self._show_and_modify))
-        self.add_option(Option(f"Create {self._entity}", self._create_entity))
+        self.add_option(Option(f"Show & Modify {self._entity_type}s", self._show_and_modify))
+        self.add_option(Option(f"Create {self._entity_type}", self._create_entity))
 
     def _show_and_modify(self) -> None:
         raise NotImplementedError("Override this method in subclass")
 
     def _create_entity(self) -> None:
-        """
-        Create a new entity by delegating to Gateway.
-        Subclasses override to choose the correct Gateway.
-        """
+        try:
+            self._perform_creation()
+            print(f"✅{self._entity_type} created successfully.")
+        except Exception as e:
+            self.handle_exception(e)
+        self.run()
+
+    @abstractmethod
+    def _perform_creation(self):
         raise NotImplementedError("Override this method in subclass")

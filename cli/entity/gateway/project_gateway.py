@@ -19,7 +19,7 @@ class ProjectGateway(EntityGateway):
     def _apply_edit(self, entity: Project, detail: Detail, optional_args: dict) -> None:
         """Edit project using service manager."""
         # Find index of project in manager list
-        projects = self._manager.get_all_projects()
+        projects = self._manager.get_entities()
         try:
             idx = projects.index(entity)
         except ValueError:
@@ -29,7 +29,7 @@ class ProjectGateway(EntityGateway):
 
     def delete_entity(self, project: Project) -> None:
         """Delete project using manager."""
-        projects = self._manager.get_all_projects()
+        projects = self._manager.get_entities()
         try:
             idx = projects.index(project)
         except ValueError:

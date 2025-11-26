@@ -13,8 +13,13 @@ class BaseMenu(ABC):
         self._options: List[Option] = []
         self._setup_options()
 
-    @abstractmethod
     def _setup_options(self) -> None:
+        self._options = []
+        self._setup_core_options()
+        self.add_option(Option("Back", self._go_back))
+
+    @abstractmethod
+    def _setup_core_options(self) -> None:
         raise NotImplementedError
 
     def add_option(self, option: Option) -> None:

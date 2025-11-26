@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, List
 from datetime import date
 from models.models import Detail
 from core.config import AppConfig
@@ -47,6 +47,10 @@ class BaseManager(ABC, Generic[T]):
 
     @abstractmethod
     def _entity_name(self) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    def assert_can_create(self) -> None:
         raise NotImplementedError
 
     @abstractmethod

@@ -44,10 +44,24 @@ class EntityGateway(ABC):
         return Detail(title=title, description=description)
 
     def create_entity(self) -> None:
-        """Fetch all required inputs and apply creation through service."""
+        """Fetch required inputs and apply creation."""
+        self._assert_creation_allowed()
         detail = self.fetch_detail()
         optional_args = self._create_fetch_optional()
         self._apply_create(detail, optional_args)
+
+    def _assert_creation_allowed(self) -> None:
+        """
+        Ensure manager accepts creation before asking user for inputs.
+
+        Raises:
+            OverflowError: Entity cannot be created due to limit.
+        """
+        try:
+            self._manager.assert_can_create()
+        except OverflowError as exc:
+            print(f"❌ Cannot create entity: {exc}")
+            raise
 
     @abstractmethod
     def _create_fetch_optional(self) -> dict:

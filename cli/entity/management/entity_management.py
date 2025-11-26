@@ -22,13 +22,13 @@ class EntityManagementMenu(BaseMenu):
         """
         self._manager = manager
         self._project = project
-        super().__init__("Entity Management", parent_menu)
 
-    def _setup_options(self) -> None:
-        self._options = []
-        self.add_option(Option("Show & Modify", self._show_and_modify))
-        self.add_option(Option("Create", self._create_entity))
-        self.add_option(Option("Back", self._go_back))
+        self._entity = "Task" if self._project else "Project"
+        super().__init__(f"{self._entity} Management", parent_menu)
+
+    def _setup_core_options(self) -> None:
+        self.add_option(Option(f"Show & Modify {self._entity}s", self._show_and_modify))
+        self.add_option(Option(f"Create {self._entity}", self._create_entity))
 
     def _show_and_modify(self) -> None:
         raise NotImplementedError("Override this method in subclass")

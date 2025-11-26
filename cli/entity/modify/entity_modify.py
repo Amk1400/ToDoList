@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 from cli.base_menu import BaseMenu
-from models.models import Project, Task
+from models.models import Project, Task, Option
 from service.project_manager import ProjectManager
 from service.task_manager import TaskManager
 
@@ -38,3 +38,12 @@ class EntityModifyMenu(BaseMenu, ABC):
     def _perform_delete(self) -> None:
         """Delete the entity; to be implemented in child class."""
         pass
+
+    def _setup_core_options(self) -> None:
+        self.add_option(Option("Edit", self._edit_entity))
+        self.add_option(Option("Delete", self._delete_entity))
+        self._add_show_tasks_option()
+
+    @abstractmethod
+    def _add_show_tasks_option(self):
+        raise NotImplementedError

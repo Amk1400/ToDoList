@@ -13,12 +13,8 @@ class TaskModifyMenu(EntityModifyMenu):
         super().__init__(manager, project, task, parent_menu)
         self._title = f"Modify Task: {task.detail.title}"
 
-    def _setup_options(self) -> None:
-        self._options = [
-            Option("Edit Task", self._edit_entity),
-            Option("Delete Task", self._delete_entity),
-            Option("Back", self._go_back)
-        ]
+    def _add_show_tasks_option(self) -> None:
+        return None
 
     def _edit_entity(self) -> None:
         try:

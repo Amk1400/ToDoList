@@ -82,3 +82,10 @@ class TaskManager(BaseManager[Task]):
 
     def _update_entity_detail(self, entity: Task, detail: Detail) -> None:
         entity.detail = detail
+
+    def assert_can_create(self) -> None:
+        """Ensure task count is below limit."""
+        if not self.current_project:
+            raise ValueError("Project must be selected before adding tasks.")
+        if len(self.current_project.tasks) >= self._config.max_tasks:
+            raise OverflowError("Maximum task count reached.")

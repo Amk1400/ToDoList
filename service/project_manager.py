@@ -55,3 +55,8 @@ class ProjectManager(BaseManager[Project]):
 
     def _update_entity_detail(self, entity: Project, detail: Detail) -> None:
         entity.detail = detail
+
+    def assert_can_create(self) -> None:
+        """Ensure project count is below limit."""
+        if len(self._projects) >= self._config.max_projects:
+            raise OverflowError("Maximum project count reached.")

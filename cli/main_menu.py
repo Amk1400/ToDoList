@@ -11,10 +11,12 @@ class MainMenu(BaseMenu):
         super().__init__("Main Menu")
 
     def _setup_options(self) -> None:
-        self._options = [
-            Option("Manage Projects", self._open_project_menu),
-            Option("Exit", self._exit_program)
-        ]
+        self._options = []
+        self.add_option(Option("Manage Projects", self._open_project_menu))
+        self.add_option(Option("Exit", self._exit_program))
+
+    def _setup_core_options(self) -> None:
+        return None
 
     def _open_project_menu(self) -> None:
         ProjectManagementMenu(self._project_manager, parent_menu=self).run()

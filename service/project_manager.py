@@ -5,7 +5,6 @@ from models.models import Detail, Project
 from service.base_manager import BaseManager
 from service.task_manager import TaskManager
 
-
 class ProjectManager(BaseManager[Project]):
     """Manager class responsible for handling all project-level operations."""
 
@@ -13,18 +12,17 @@ class ProjectManager(BaseManager[Project]):
         super().__init__(config)
         self._task_manager: TaskManager = TaskManager(config)
 
-    def update_project(self, idx: int, detail: Detail) -> None:
-        self._validate_entity_index(idx)
-        self._update_entity_detail(self._entity_list[idx], detail)
-
     def get_task_manager(self) -> TaskManager:
         return self._task_manager
 
-    def _entity_name(self) -> str:
+    def entity_name(self) -> str:
         return "Project"
 
     def _create_entity_object(self, detail: Detail, deadline: Optional[date] = None) -> Project:
         return Project(detail=detail)
+
+    def _update_deadline_and_status(self, deadline, entity, status):
+        return None
 
     def _get_max_desc_length(self) -> int:
         return self._config.max_project_description_length

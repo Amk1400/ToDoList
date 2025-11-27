@@ -17,7 +17,6 @@ class BaseManager(ABC, Generic[T]):
     def add_entity(self, detail: Detail, deadline: Optional[date] = None) -> None:
         """Validate, create, and append entity to entity_list."""
         self.assert_can_create()
-        self.validate(detail)
         entity = self._create_entity_object(detail, deadline)
         self._entity_list.append(entity)
 
@@ -26,33 +25,28 @@ class BaseManager(ABC, Generic[T]):
         try:
             self._entity_list.remove(entity)
         except ValueError:
-            raise ValueError(f"{self._entity_name()} not found in entity list.")
+            raise ValueError(f"{self.entity_name()} not found in entity list.")
 
     def get_entities(self) -> list[T]:
         return self._entity_list
 
-    def _validate_entity_index(self, idx: int) -> None:
-        if not (0 <= idx < len(self._entity_list)):
-            raise IndexError("Invalid index.")
-
-    def validate_title(self, title: str) -> None:
-        max_title_len = getattr(self._config, f"max_{self._entity_name().lower()}_name_length")
-        title = title.strip()
-        if not title:
-            raise ValueError(f"{self._entity_name()} title cannot be empty.")
-        if len(title) > max_title_len:
-            raise ValueError(f"{self._entity_name()} title cannot exceed {max_title_len} characters.")
-
-    def validate_description(self, description: str) -> None:
-        max_desc_len = getattr(self._config, f"max_{self._entity_name().lower()}_description_length")
-        description = description.strip()
-        if not description:
-            raise ValueError(f"{self._entity_name()} description cannot be empty.")
-        if len(description) > max_desc_len:
-            raise ValueError(f"{self._entity_name()} description cannot exceed {max_desc_len} characters.")
+    def update_entity_fields(
+        self,
+        entity: T,
+        detail: Detail,
+        deadline: Optional[date] = None,
+        status: Optional[str] = None
+    ) -> None:
+        """Update mandatory detail and optional fields on entity."""
+        self._update_entity_detail(entity, detail)
+        self._update_deadline_and_status(deadline, entity, status)
 
     @abstractmethod
-    def _entity_name(self) -> str:
+    def _update_deadline_and_status(self, deadline, entity, status):
+        raise NotImplementedError
+
+    @abstractmethod
+    def entity_name(self) -> str:
         raise NotImplementedError
 
     @abstractmethod
@@ -71,13 +65,22 @@ class BaseManager(ABC, Generic[T]):
     def _get_max_title_length(self) -> int:
         raise NotImplementedError
 
-    @abstractmethod
-    def validate(self, detail: Detail) -> None:
-        raise NotImplementedError
-
     def _update_entity_detail(self, entity: T, detail: Detail) -> None:
         entity.detail = detail
 
     def _assert_can_append(self, max_count: int):
         if len(self._entity_list) >= max_count:
-            raise OverflowError(f"Maximum {self._entity_name()} count reached.")
+            raise OverflowError(f"Maximum {self.entity_name()} count reached.")
+
+    def validate_title(self, title: str) -> None:
+        self._validate_detail(self._get_max_title_length(), title)
+
+    def validate_description(self, description: str) -> None:
+        self._validate_detail(self._get_max_desc_length(), description)
+
+    def _validate_detail(self, max_length:int, detail:str):
+        detail = detail.strip()
+        if not detail:
+            raise ValueError(f"{self.entity_name()} title cannot be empty.")
+        if len(detail) > max_length:
+            raise ValueError(f"{self.entity_name()} title cannot exceed {max_length} characters.")

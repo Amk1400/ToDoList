@@ -4,7 +4,6 @@ from core.config import AppConfig
 from models.models import Detail, Task, Project
 from service.base_manager import BaseManager
 
-
 class TaskManager(BaseManager[Task]):
     """Handles task-level operations for a project."""
 
@@ -16,24 +15,6 @@ class TaskManager(BaseManager[Task]):
     def set_current_project(self, project: Project) -> None:
         self.current_project = project
         self._entity_list = project.tasks
-
-    def update_task(
-        self,
-        idx: int,
-        detail: Optional[Detail] = None,
-        deadline: Optional[date] = None,
-        status: Optional[str] = None,
-    ) -> None:
-        self._validate_entity_index(idx)
-        task = self._entity_list[idx]
-
-        if detail:
-            self._update_entity_detail(task, detail)
-        if deadline:
-            self.validate_deadline(deadline)
-            task.deadline = deadline
-        if status:
-            task.status = self.validate_status(status)
 
     def validate_status(self, status: str) -> str:
         allowed = {"todo", "doing", "done"}
@@ -47,8 +28,12 @@ class TaskManager(BaseManager[Task]):
         if deadline < today.today():
             raise ValueError("Deadline cannot be in the past.")
 
-    def _entity_name(self) -> str:
+    def entity_name(self) -> str:
         return "Task"
+
+    def _update_deadline_and_status(self, deadline, entity, status):
+        entity.deadline = deadline
+        entity.status = self.validate_status(status)
 
     def _create_entity_object(self, detail: Detail, deadline: Optional[date] = None) -> Task:
         if deadline is None:

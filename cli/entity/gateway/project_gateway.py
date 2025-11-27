@@ -12,17 +12,17 @@ class ProjectGateway(EntityGateway):
         super().__init__(manager)
 
 
-    def _create_fetch_optional(self) -> dict:
+    def _fetch_deadline(self) -> dict:
         """No optional fields for project creation."""
         return {}
 
-    def edit_fetch_optional(self, entity: Project) -> dict:
+    def _fetch_deadline_and_status(self, entity: Project) -> dict:
         """No optional fields for project edition."""
         return {}
 
     def _apply_create(self, detail: Detail, optional_args: dict) -> None:
         """Create project using service manager."""
-        self._manager.create_project(detail)
+        self._manager.add_entity(detail)
 
     def _apply_edit(self, entity: Project, detail: Detail, optional_args: dict) -> None:
         """Edit project using service manager."""
@@ -34,16 +34,6 @@ class ProjectGateway(EntityGateway):
             print("Project not found.")
             return
         self._manager.update_project(idx, detail)
-
-    def delete_entity(self, project: Project) -> None:
-        """Delete project using manager."""
-        projects = self._manager.get_entities()
-        try:
-            idx = projects.index(project)
-        except ValueError:
-            print("Project not found.")
-            return
-        self._manager.remove_project(idx)
 
     def get_task_manager(self) -> TaskManager:
         return self._manager.get_task_manager()

@@ -31,10 +31,11 @@ class BaseMenu(ABC):
             self._parent_menu.run()
 
     def run(self) -> None:
-        print(f"\n--- {self._title} ---")
-        for idx, opt in enumerate(self._options, start=1):
-            print(f"{idx}. {opt.title}")
+        self._print_menu_title()
+        self._print_menu_options()
+        self._fetch_option_retry()
 
+    def _fetch_option_retry(self):
         while True:
             raw_input_str = input("Choose an option: ").strip()
             try:
@@ -43,12 +44,19 @@ class BaseMenu(ABC):
                     min_value=1,
                     max_value=len(self._options)
                 ).validate()
-                validated_index = validated_result.as_int()-1
+                validated_index = validated_result.as_int() - 1
 
                 self._options[validated_index].action()
                 break
             except Exception as error:
                 self.handle_exception(error)
+
+    def _print_menu_title(self):
+        print(f"\n--- {self._title} ---")
+
+    def _print_menu_options(self):
+        for idx, opt in enumerate(self._options, start=1):
+            print(f"{idx}. {opt.title}")
 
     def handle_exception(
         self,

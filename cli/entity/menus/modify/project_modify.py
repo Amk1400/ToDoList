@@ -2,8 +2,8 @@ from typing import Optional
 from cli.base_menu import BaseMenu
 from cli.entity.gateway.project_gateway import ProjectGateway
 from cli.entity.gateway.task_gateway import TaskGateway
-from cli.entity.management.task_management import TaskManagementMenu
-from cli.entity.modify.entity_modify import EntityModifyMenu
+from cli.entity.menus.management.task_management import TaskManagementMenu
+from cli.entity.menus.modify.entity_modify import EntityModifyMenu
 from models.models import Project, Option
 
 

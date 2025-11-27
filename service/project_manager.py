@@ -1,4 +1,5 @@
-from typing import List
+from datetime import date
+from typing import Optional
 from core.config import AppConfig
 from models.models import Detail, Project
 from service.base_manager import BaseManager
@@ -10,34 +11,11 @@ class ProjectManager(BaseManager[Project]):
 
     def __init__(self, config: AppConfig) -> None:
         super().__init__(config)
-        self._projects: List[Project] = []
         self._task_manager: TaskManager = TaskManager(config)
 
-    def create_project(self, detail: Detail) -> None:
-        if len(self._projects) >= self._config.max_projects:
-            raise OverflowError("Maximum number of projects reached.")
-        if any(p.detail.title == detail.title for p in self._projects):
-            raise ValueError("Project title must be unique.")
-        self.validate(detail)
-        self._projects.append(self._create_entity(detail))
-
     def update_project(self, idx: int, detail: Detail) -> None:
-        if not (0 <= idx < len(self._projects)):
-            raise IndexError("Invalid project index.")
-        self.validate(detail)
-        self._update_entity_detail(self._projects[idx], detail)
-
-    def get_project(self, idx: int) -> Project:
-        if not (0 <= idx < len(self._projects)):
-            raise IndexError("Invalid project index.")
-        return self._projects[idx]
-
-    def remove_project(self, idx: int) -> None:
-        project = self.get_project(idx)
-        self._projects.remove(project)
-
-    def get_entities(self) -> List[Project]:
-        return self._projects
+        self._validate_entity_index(idx)
+        self._update_entity_detail(self._entity_list[idx], detail)
 
     def get_task_manager(self) -> TaskManager:
         return self._task_manager
@@ -45,18 +23,14 @@ class ProjectManager(BaseManager[Project]):
     def _entity_name(self) -> str:
         return "Project"
 
-    def _create_entity(self, detail: Detail) -> Project:
+    def _create_entity_object(self, detail: Detail, deadline: Optional[date] = None) -> Project:
         return Project(detail=detail)
 
-    def validate(self, detail: Detail) -> None:
-        max_name = self._config.max_project_name_length
-        max_desc = self._config.max_project_description_length
-        self.validate_detail(detail, max_name, max_desc, "Project")
+    def _get_max_desc_length(self) -> int:
+        return self._config.max_project_description_length
 
-    def _update_entity_detail(self, entity: Project, detail: Detail) -> None:
-        entity.detail = detail
+    def _get_max_title_length(self) -> int:
+        return self._config.max_project_name_length
 
     def assert_can_create(self) -> None:
-        """Ensure project count is below limit."""
-        if len(self._projects) >= self._config.max_projects:
-            raise OverflowError("Maximum project count reached.")
+        self._assert_can_append(self._config.max_projects)

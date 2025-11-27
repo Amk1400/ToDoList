@@ -1,5 +1,5 @@
-from typing import Optional
-from datetime import date, datetime
+from typing import Optional, List
+from datetime import date
 from core.config import AppConfig
 from models.models import Detail, Task, Project
 from service.base_manager import BaseManager
@@ -11,30 +11,23 @@ class TaskManager(BaseManager[Task]):
     def __init__(self, config: AppConfig) -> None:
         super().__init__(config)
         self.current_project: Optional[Project] = None
+        self._entity_list: List[Task] = []
 
-    def add_task(self, project: Project, detail: Detail, deadline: date) -> None:
-        """Add a new task to the project after validation."""
-        self.validate(detail)
-        self.validate_deadline(deadline)
-        if len(project.tasks) >= self._config.max_tasks:
-            raise OverflowError("Maximum number of tasks reached.")
-        project.tasks.append(Task(detail=detail, deadline=deadline))
+    def set_current_project(self, project: Project) -> None:
+        self.current_project = project
+        self._entity_list = project.tasks
 
     def update_task(
         self,
-        project: Project,
-        task_idx: int,
+        idx: int,
         detail: Optional[Detail] = None,
         deadline: Optional[date] = None,
         status: Optional[str] = None,
     ) -> None:
-        """Update an existing task's detail, deadline, or status."""
-        if not (0 <= task_idx < len(project.tasks)):
-            raise IndexError("Invalid task index.")
-        task = project.tasks[task_idx]
+        self._validate_entity_index(idx)
+        task = self._entity_list[idx]
 
         if detail:
-            self.validate(detail)
             self._update_entity_detail(task, detail)
         if deadline:
             self.validate_deadline(deadline)
@@ -42,57 +35,33 @@ class TaskManager(BaseManager[Task]):
         if status:
             task.status = self.validate_status(status)
 
-    def remove_task(self, project: Project, task_idx: int) -> None:
-        """Remove a task from the project by index."""
-        if not (0 <= task_idx < len(project.tasks)):
-            raise IndexError("Invalid task index.")
-        project.tasks.pop(task_idx)
-
-    def parse_deadline(self, raw: str) -> date:
-        """Parse and validate a raw deadline string."""
-        raw = raw.strip()
-        if not raw:
-            raise ValueError("Deadline is required.")
-        try:
-            parsed = datetime.strptime(raw, "%Y-%m-%d").date()
-        except ValueError:
-            raise ValueError("Deadline format must be YYYY-MM-DD.")
-        if parsed < date.today():
-            raise ValueError("Deadline cannot be in the past.")
-        return parsed
-
     def validate_status(self, status: str) -> str:
-        """Validate task status string."""
         allowed = {"todo", "doing", "done"}
         s = status.strip().lower()
         if s not in allowed:
             raise ValueError("Status must be one of: todo, doing, done.")
         return s
 
+    def validate_deadline(self, deadline: date) -> None:
+        from datetime import date as today
+        if deadline < today.today():
+            raise ValueError("Deadline cannot be in the past.")
+
     def _entity_name(self) -> str:
         return "Task"
 
-    def _create_entity(self, detail: Detail) -> Task:
-        raise NotImplementedError("Use add_task() with a project and deadline.")
+    def _create_entity_object(self, detail: Detail, deadline: Optional[date] = None) -> Task:
+        if deadline is None:
+            raise ValueError("Deadline is required for Task.")
+        return Task(detail=detail, deadline=deadline)
 
-    def validate(self, detail: Detail) -> None:
-        max_name = self._config.max_task_name_length
-        max_desc = self._config.max_task_description_length
-        self.validate_detail(detail, max_name, max_desc, "Task")
+    def _get_max_desc_length(self) -> int:
+        return self._config.max_task_description_length
 
-    def _update_entity_detail(self, entity: Task, detail: Detail) -> None:
-        entity.detail = detail
-
-    def set_current_project(self, project: Project) -> None:
-        """Set the active project for task operations."""
-        self.current_project = project
+    def _get_max_title_length(self) -> int:
+        return self._config.max_task_name_length
 
     def assert_can_create(self) -> None:
-        """Ensure task count is below limit."""
         if not self.current_project:
             raise ValueError("Project must be selected before adding tasks.")
-        if len(self.get_entities()) >= self._config.max_tasks:
-            raise OverflowError("Maximum task count reached.")
-
-    def get_entities(self):
-        return self.current_project.tasks
+        self._assert_can_append(self._config.max_tasks)

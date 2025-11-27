@@ -1,6 +1,6 @@
 from cli.base_menu import BaseMenu
 from models.models import Option
-from cli.entity.management.project_management import ProjectManagementMenu
+from cli.entity.menus.management.project_management import ProjectManagementMenu
 from cli.entity.gateway.project_gateway import ProjectGateway
 
 

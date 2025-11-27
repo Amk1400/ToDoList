@@ -5,37 +5,36 @@ from service.task_manager import TaskManager
 
 
 class TaskGateway(EntityGateway):
+    """Gateway for fetching task inputs from CLI to Service."""
+
     def __init__(self, manager: TaskManager, project: Project) -> None:
         super().__init__(manager)
         self._manager: TaskManager = manager
         self._project: Project = project
+        self._manager.set_current_project(project)
 
-    def _fetch_deadline(self) -> date:
+    def _fetch_deadline(self) -> dict:
         while True:
             raw_deadline = input("Enter task deadline (YYYY-MM-DD): ").strip()
             try:
-                deadline = self._manager.parse_deadline(raw_deadline)  # service validates
-                return deadline
+                year, month, day = map(int, raw_deadline.split("-"))
+                deadline = date(year, month, day)
+                self._manager.validate_deadline(deadline)
+                return {"deadline": deadline}
             except ValueError as e:
-                print(e)
+                print(f"Invalid date: {e}")
 
     def _fetch_status(self) -> str:
         while True:
             status = input("Enter task status (todo/doing/done): ").strip()
             try:
-                self._manager.validate_status(status)
-                return status
+                return self._manager.validate_status(status)
             except ValueError as e:
                 print(e)
 
-    def _create_fetch_optional(self) -> dict:
-        """Fetch optional task fields (deadline) for creation."""
-        deadline = self._fetch_deadline()
-        return {"deadline": deadline}
-
-    def edit_fetch_optional(self, entity: Task) -> dict:
+    def _fetch_deadline_and_status(self, entity: Task) -> dict:
         """Fetch optional task fields (deadline, status) for editing."""
-        deadline = self._fetch_deadline()
+        deadline = self._fetch_deadline()["deadline"]
         status = self._fetch_status()
         return {"deadline": deadline, "status": status}
 
@@ -45,30 +44,27 @@ class TaskGateway(EntityGateway):
         if deadline is None:
             print("Deadline required to create task.")
             return
-        self._manager.add_task(self._project, detail, deadline)
+        self._manager.add_entity(detail, deadline)
 
     def _apply_edit(self, entity: Task, detail: Detail, optional_args: dict) -> None:
         """Edit task using service manager."""
+        try:
+            idx = self._manager._entity_list.index(entity)
+        except ValueError:
+            print("Task not found.")
+            return
         self._manager.update_task(
-            self._project,
-            self._project.tasks.index(entity),
-            detail,
+            idx=idx,
+            detail=detail,
             deadline=optional_args.get("deadline"),
             status=optional_args.get("status")
         )
 
-    def delete_entity(self, task: Task) -> None:
-        """Delete task using manager."""
-        try:
-            idx = self._project.tasks.index(task)
-        except ValueError:
-            print("Task not found.")
-            return
-        self._manager.remove_task(self._project, idx)
-
-    def set_current_project(self,project: Project):
-        self._manager.set_current_project(project)
-
     @property
-    def project(self):
+    def project(self) -> Project:
         return self._project
+
+    def set_current_project(self, project: Project):
+        """Set a new current project and update entity_list."""
+        self._project = project
+        self._manager.set_current_project(project)

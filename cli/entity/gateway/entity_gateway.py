@@ -43,7 +43,7 @@ class EntityGateway(ABC):
         """Fetch required inputs and apply creation."""
         self._assert_creation_allowed()
         detail = self.fetch_detail()
-        optional_args = self._create_fetch_optional()
+        optional_args = self._fetch_deadline()
         self._apply_create(detail, optional_args)
 
     def _assert_creation_allowed(self) -> None:
@@ -60,22 +60,25 @@ class EntityGateway(ABC):
             raise
 
     @abstractmethod
-    def _create_fetch_optional(self) -> dict:
+    def _fetch_deadline(self) -> dict:
         """Fetch optional fields during creation; override in child classes."""
         return {}
 
     def edit_entity(self, entity: object) -> None:
         """Fetch all required inputs and apply edition through service."""
         detail = self.fetch_detail()
-        optional_args = self.edit_fetch_optional(entity)
+        optional_args = self._fetch_deadline_and_status(entity)
         self._apply_edit(entity, detail, optional_args)
 
-    @abstractmethod
     def delete_entity(self, entity: Entity):
-        raise NotImplementedError
+        """Delete entity using manager by object reference."""
+        try:
+            self._manager.remove_entity_object(entity)
+        except ValueError as exc:
+            print(f"❌ {exc}")
 
     @abstractmethod
-    def edit_fetch_optional(self, entity: object) -> dict:
+    def _fetch_deadline_and_status(self, entity: object) -> dict:
         """Fetch optional fields during edition; override in child classes."""
         return {}
 

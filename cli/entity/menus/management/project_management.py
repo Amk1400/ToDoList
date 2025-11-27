@@ -2,8 +2,8 @@ from typing import Optional
 
 from cli.base_menu import BaseMenu
 from cli.entity.gateway.project_gateway import ProjectGateway
-from cli.entity.management.entity_management import EntityManagementMenu
-from cli.entity.show.project_show import ProjectShowMenu
+from cli.entity.menus.management.entity_management import EntityManagementMenu
+from cli.entity.menus.show.project_show import ProjectShowMenu
 
 
 class ProjectManagementMenu(EntityManagementMenu):

@@ -1,16 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Callable
+from typing import Optional, Callable, List
+from cli.fetcher import CliFetcher
 from models.models import Option
-from exceptions.validator import NumberChoiceValidator
 
 
 class BaseMenu(ABC):
-    """Base menu abstraction."""
+    """Base menu abstraction using CliFetcher for all inputs."""
 
-    def __init__(self, title: str, parent_menu: Optional["BaseMenu"] = None) -> None:
+    def __init__(self, title: str, parent_menu: Optional["BaseMenu"] = None, fetcher: Optional[CliFetcher] = None) -> None:
         self._title: str = title
         self._parent_menu: Optional["BaseMenu"] = parent_menu
         self._options: List[Option] = []
+        self._fetcher: CliFetcher = fetcher or CliFetcher(None)
         self._setup_options()
 
     def _setup_options(self) -> None:
@@ -33,45 +34,21 @@ class BaseMenu(ABC):
     def run(self) -> None:
         self._print_menu_title()
         self._print_menu_options()
-        self._fetch_option_retry()
+        self._fetch_and_execute_option()
 
-    def _fetch_option_retry(self):
-        while True:
-            raw_input_str = input("Choose an option: ").strip()
-            try:
-                validated_result = NumberChoiceValidator(
-                    choice=raw_input_str,
-                    min_value=1,
-                    max_value=len(self._options)
-                ).validate()
-                validated_index = validated_result.as_int() - 1
+    def _fetch_and_execute_option(self) -> None:
+        choice = self._fetcher.fetch_numeric_option(len(self._options))
+        self._options[choice - 1].action()
 
-                self._options[validated_index].action()
-                break
-            except Exception as error:
-                self.handle_exception(error)
-
-    def _print_menu_title(self):
+    def _print_menu_title(self) -> None:
         print(f"\n--- {self._title} ---")
 
-    def _print_menu_options(self):
-        for idx, opt in enumerate(self._options, start=1):
-            print(f"{idx}. {opt.title}")
+    def _print_menu_options(self) -> None:
+        for idx, option in enumerate(self._options, start=1):
+            print(f"{idx}. {option.title}")
 
-    def handle_exception(
-        self,
-        error: Exception,
-        callback: Optional[Callable[[], None]] = None
-    ) -> None:
-        """Handle error and optionally execute a callback.
-
-        Args:
-            error (Exception): Raised exception.
-            callback (Callable|None): Optional callback to run after printing.
-
-        Returns:
-            None
-        """
+    def handle_exception(self, error: Exception, callback: Optional[Callable[[], None]] = None) -> None:
+        """Print error and optionally execute callback."""
         print(f"❌ Error: {error}")
         if callback:
             callback()

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 from cli.base_menu import BaseMenu
-from cli.entity.gateway.project_gateway import ProjectGateway
-from cli.entity.gateway.task_gateway import TaskGateway
+from cli.gateway.project_gateway import ProjectGateway
+from cli.gateway.task_gateway import TaskGateway
 from models.models import Project, Option
 class EntityShowMenu(BaseMenu, ABC):
     """Abstract base menu to show entities and select one to modify."""

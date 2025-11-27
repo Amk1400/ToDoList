@@ -1,8 +1,8 @@
 from typing import Optional
 from cli.base_menu import BaseMenu
-from cli.entity.gateway.project_gateway import ProjectGateway
-from cli.entity.menus.modify.project_modify import ProjectModifyMenu
-from cli.entity.menus.show.entity_show import EntityShowMenu
+from cli.gateway.project_gateway import ProjectGateway
+from cli.menus.entity.modify.project_modify import ProjectModifyMenu
+from cli.menus.entity.show.entity_show import EntityShowMenu
 from models.models import Project
 
 

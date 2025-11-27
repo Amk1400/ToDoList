@@ -2,8 +2,8 @@ import os
 from dotenv import load_dotenv
 from core.config import AppConfig
 from service.project_manager import ProjectManager
-from cli.main_menu import MainMenu
-from cli.entity.gateway.project_gateway import ProjectGateway
+from cli.menus.main_menu import MainMenu
+from cli.gateway.project_gateway import ProjectGateway
 
 
 def main() -> None:
@@ -13,7 +13,6 @@ def main() -> None:
     config = _load_config()
     project_manager = ProjectManager(config)
     project_gateway = ProjectGateway(project_manager)
-
     main_menu = MainMenu(project_gateway)
     main_menu.run()
 

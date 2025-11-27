@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Optional, TypeVar, Generic
 from cli.base_menu import BaseMenu
-from cli.entity.gateway.entity_gateway import EntityGateway
+from cli.gateway.entity_gateway import EntityGateway
 from models.models import Option, Project
 
 # Generic type برای Gateway

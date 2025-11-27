@@ -73,14 +73,19 @@ class BaseManager(ABC, Generic[T]):
             raise OverflowError(f"Maximum {self.entity_name()} count reached.")
 
     def validate_title(self, title: str) -> None:
-        self._validate_detail(self._get_max_title_length(), title)
+        """Validate title: non-empty, within length, and unique."""
+        self._validate_detail(self._get_max_title_length(), title, "title")
+        self._check_title_unique(title)
+
+    def _check_title_unique(self, title):
+        if any(entity.detail.title == title for entity in self._entity_list):
+            raise ValueError(f"{self.entity_name()} title must be unique.")
 
     def validate_description(self, description: str) -> None:
-        self._validate_detail(self._get_max_desc_length(), description)
+        self._validate_detail(self._get_max_desc_length(), description, "description")
 
-    def _validate_detail(self, max_length:int, detail:str):
-        detail = detail.strip()
+    def _validate_detail(self, max_length:int, detail:str, detail_name: str):
         if not detail:
-            raise ValueError(f"{self.entity_name()} title cannot be empty.")
+            raise ValueError(f"{self.entity_name()} {detail_name} cannot be empty.")
         if len(detail) > max_length:
-            raise ValueError(f"{self.entity_name()} title cannot exceed {max_length} characters.")
+            raise ValueError(f"{self.entity_name()} {detail_name} cannot exceed {max_length} characters.")

@@ -1,5 +1,5 @@
 from typing import Optional
-from cli.base_menu import BaseMenu
+from cli.menus.base_menu import BaseMenu
 from cli.gateway.task_gateway import TaskGateway
 from cli.menus.entity.modify.entity_modify import EntityModifyMenu
 from models.models import Project, Task

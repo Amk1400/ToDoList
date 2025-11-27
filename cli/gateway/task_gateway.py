@@ -20,7 +20,7 @@ class TaskGateway(EntityGateway):
 
     def _fetch_optional_create(self) -> dict:
         """Fetch optional fields during task creation (deadline)."""
-        return {"deadline": self._fetcher.fetch_deadline()}
+        return {"deadline": self._fetcher.fetch_deadline(), "status": self._fetcher.fetch_status()}
 
     def _fetch_optional_edit(self, entity: Task) -> dict:
         """Fetch optional fields during task editing (deadline, status)."""

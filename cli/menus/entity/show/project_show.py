@@ -1,5 +1,5 @@
 from typing import Optional
-from cli.base_menu import BaseMenu
+from cli.menus.base_menu import BaseMenu
 from cli.gateway.project_gateway import ProjectGateway
 from cli.menus.entity.modify.project_modify import ProjectModifyMenu
 from cli.menus.entity.show.entity_show import EntityShowMenu
@@ -14,3 +14,6 @@ class ProjectShowMenu(EntityShowMenu):
 
     def _open_modify(self, project: Project) -> None:
         ProjectModifyMenu(self._gateway, project, parent_menu=self).run()
+
+    def _get_entity_name(self) -> str:
+        return "Project"

@@ -1,5 +1,5 @@
 from typing import Optional
-from cli.base_menu import BaseMenu
+from cli.menus.base_menu import BaseMenu
 from cli.gateway.task_gateway import TaskGateway
 from cli.menus.entity.management.entity_management import EntityManagementMenu
 from cli.menus.entity.show.task_show import TaskShowMenu

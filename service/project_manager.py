@@ -15,10 +15,16 @@ class ProjectManager(BaseManager[Project]):
     def get_task_manager(self) -> TaskManager:
         return self._task_manager
 
+    def _cascade_delete_tasks(self, entity):
+        from service.task_manager import TaskManager
+        # Cascade delete tasks
+        for task in list(entity.tasks):
+            self._task_manager.remove_entity_object(task)
+
     def entity_name(self) -> str:
         return "Project"
 
-    def _create_entity_object(self, detail: Detail, deadline: Optional[date] = None) -> Project:
+    def _create_entity_object(self, detail: Detail, deadline: Optional[date] = None, status: Optional[str] = None) -> Project:
         return Project(detail=detail)
 
     def _update_deadline_and_status(self, deadline, entity, status):
@@ -30,5 +36,5 @@ class ProjectManager(BaseManager[Project]):
     def _get_max_title_length(self) -> int:
         return self._config.max_project_name_length
 
-    def assert_can_create(self) -> None:
-        self._assert_can_append(self._config.max_projects)
+    def _get_max_count(self) -> int:
+        return self._config.max_projects

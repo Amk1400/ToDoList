@@ -1,8 +1,9 @@
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import date
 from core.config import AppConfig
 from models.models import Detail, Task, Project
 from service.base_manager import BaseManager
+from core.validator import DeadlineValidator, StatusValidator
 
 class TaskManager(BaseManager[Task]):
     """Handles task-level operations for a project."""
@@ -16,29 +17,17 @@ class TaskManager(BaseManager[Task]):
         self.current_project = project
         self._entity_list = project.tasks
 
-    def validate_status(self, status: str) -> str:
-        allowed = {"todo", "doing", "done"}
-        s = status.strip().lower()
-        if s not in allowed:
-            raise ValueError("Status must be one of: todo, doing, done.")
-        return s
-
-    def validate_deadline(self, deadline: date) -> None:
-        from datetime import date as today
-        if deadline < today.today():
-            raise ValueError("Deadline cannot be in the past.")
-
     def entity_name(self) -> str:
         return "Task"
 
+    def _create_entity_object(self, detail: Detail, deadline: Optional[date] = None, status: Optional[str] = "todo") -> Task:
+        status = "todo" if status is None else status
+        return Task(detail=detail, deadline=deadline, status=status)
+
     def _update_deadline_and_status(self, deadline, entity, status):
         entity.deadline = deadline
-        entity.status = self.validate_status(status)
-
-    def _create_entity_object(self, detail: Detail, deadline: Optional[date] = None) -> Task:
-        if deadline is None:
-            raise ValueError("Deadline is required for Task.")
-        return Task(detail=detail, deadline=deadline)
+        new_status = self.validate_status(status)
+        entity.status = entity.status if new_status is None else new_status
 
     def _get_max_desc_length(self) -> int:
         return self._config.max_task_description_length
@@ -46,7 +35,18 @@ class TaskManager(BaseManager[Task]):
     def _get_max_title_length(self) -> int:
         return self._config.max_task_name_length
 
-    def assert_can_create(self) -> None:
-        if not self.current_project:
-            raise ValueError("Project must be selected before adding tasks.")
-        self._assert_can_append(self._config.max_tasks)
+    def _get_max_count(self) -> int:
+        return self._config.max_projects
+
+    def _cascade_delete_tasks(self, entity) -> None:
+        return None
+
+    # ---------- Validator Methods ----------
+
+    def validate_status(self, status: str) -> str:
+        validator = StatusValidator()
+        return validator.validate(status)
+
+    def validate_deadline(self, deadline: date) -> None:
+        validator = DeadlineValidator()
+        validator.validate(str(deadline))

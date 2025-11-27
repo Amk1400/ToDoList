@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from typing import TypeVar, Generic
-from cli.base_menu import BaseMenu
+from cli.menus.base_menu import BaseMenu
 from cli.gateway.entity_gateway import EntityGateway
 from models.models import Option
 
@@ -12,8 +12,6 @@ class EntityModifyMenu(BaseMenu, Generic[G]):
         self._manager = manager
         self._entity = entity
         super().__init__("Modify Entity", parent_menu)
-
-
 
     def _edit_entity(self) -> None:
         try:

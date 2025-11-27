@@ -1,5 +1,5 @@
 from typing import Optional
-from cli.base_menu import BaseMenu
+from cli.menus.base_menu import BaseMenu
 from cli.gateway.task_gateway import TaskGateway
 from cli.menus.entity.modify.task_modify import TaskModifyMenu
 from cli.menus.entity.show.entity_show import EntityShowMenu
@@ -14,3 +14,6 @@ class TaskShowMenu(EntityShowMenu):
 
     def _open_modify(self, task: Task) -> None:
         TaskModifyMenu(self._gateway, self._project, task, parent_menu=self).run()
+
+    def _get_entity_name(self) -> str:
+        return "Task"

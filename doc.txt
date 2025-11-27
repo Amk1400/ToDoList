@@ -1,5 +1,7 @@
 flow:
 mainmenu->projectManagement->showprojectmenu->modifyproject-> taskManagement->showtaskmenu->modifytask
 
-create exception handling is in managementlayer
-edit/delete exception handling is in modifylayer
+every input validation exception handling in fetcher.py and validators are defined in managers
+any other exception handling that are not related to inputs is as follows:
+1) exception handling of create process is in managementlayer
+2) exception handling of edit/delete process is in modifylayer

@@ -16,7 +16,6 @@ class ProjectManager(BaseManager[Project]):
         return self._task_manager
 
     def _cascade_delete_tasks(self, entity):
-        from service.task_manager import TaskManager
         # Cascade delete tasks
         for task in list(entity.tasks):
             self._task_manager.remove_entity_object(task)
@@ -24,7 +23,8 @@ class ProjectManager(BaseManager[Project]):
     def entity_name(self) -> str:
         return "Project"
 
-    def _create_entity_object(self, detail: Detail, deadline: Optional[date] = None, status: Optional[str] = None) -> Project:
+    def _create_entity_object(self, detail: Detail,
+                              deadline: Optional[date] = None, status: Optional[str] = None) -> Project:
         return Project(detail=detail)
 
     def _update_deadline_and_status(self, deadline, entity, status):

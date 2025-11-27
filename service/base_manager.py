@@ -51,7 +51,8 @@ class BaseManager(ABC, Generic[T]):
         raise NotImplementedError
 
     @abstractmethod
-    def _create_entity_object(self, detail: Detail, deadline: Optional[date] = None, status: Optional[str] = None) -> T:
+    def _create_entity_object(self, detail: Detail,
+                              deadline: Optional[date] = None, status: Optional[str] = None) -> T:
         raise NotImplementedError
 
     @abstractmethod

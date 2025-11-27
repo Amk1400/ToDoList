@@ -20,7 +20,8 @@ class TaskManager(BaseManager[Task]):
     def entity_name(self) -> str:
         return "Task"
 
-    def _create_entity_object(self, detail: Detail, deadline: Optional[date] = None, status: Optional[str] = "todo") -> Task:
+    def _create_entity_object(self, detail: Detail,
+                              deadline: Optional[date] = None, status: Optional[str] = "todo") -> Task:
         status = "todo" if status is None else status
         return Task(detail=detail, deadline=deadline, status=status)
 

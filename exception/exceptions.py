@@ -27,6 +27,13 @@ class DuplicateValueError(ValidationError):
         super().__init__(message)
 
 
+class MaxCountError(ValidationError):
+    """max entity creation limit reached."""
+
+    def __init__(self, field_name: str, max_length: int) -> None:
+        message = f"can not create more than {max_length} {field_name}s."
+        super().__init__(message)
+
 class InvalidChoiceError(ValidationError):
     """Choice was outside allowed range."""
 

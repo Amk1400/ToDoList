@@ -37,7 +37,7 @@ class TaskManager(BaseManager[Task]):
         return self._config.max_task_name_length
 
     def _get_max_count(self) -> int:
-        return self._config.max_projects
+        return self._config.max_tasks
 
     def _cascade_delete_tasks(self, entity) -> None:
         return None
@@ -50,4 +50,4 @@ class TaskManager(BaseManager[Task]):
 
     def validate_deadline(self, deadline: date) -> None:
         validator = DeadlineValidator()
-        validator.validate(str(deadline))
+        validator.validate(deadline)

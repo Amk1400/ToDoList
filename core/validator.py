@@ -8,7 +8,7 @@ from exception.exceptions import (
     DuplicateValueError,
     InvalidChoiceError,
     InvalidStatusError,
-    InvalidDateError,
+    InvalidDateError, MaxCountError,
 )
 
 
@@ -57,7 +57,7 @@ class MaxCountValidator(BaseValidator):
 
     def validate(self, value: Any = None) -> None:
         if self._current_count >= self._max_count:
-            raise DuplicateValueError(self._field_name)
+            raise MaxCountError(self._field_name, self._max_count)
 
 
 class NumberChoiceValidator(BaseValidator):
@@ -94,16 +94,14 @@ class StatusValidator(BaseValidator):
 
 
 class DeadlineValidator(BaseValidator):
-    def validate(self, value: Optional[str]) -> Optional[date]:
-        if not value or not value.strip():
+    def validate(self, value: Optional[date]) -> Optional[date]:
+        if value is None:
             return None
-
-        try:
-            parsed = datetime.strptime(value.strip(), "%Y-%m-%d").date()
-        except ValueError as error:
-            raise InvalidDateError() from error
-
-        if parsed < date.today():
+        if isinstance(value, str):
+            try:
+                value = datetime.strptime(value.strip(), "%Y-%m-%d").date()
+            except ValueError as error:
+                raise InvalidDateError() from error
+        if value < date.today():
             raise InvalidDateError()
-
-        return parsed
+        return value

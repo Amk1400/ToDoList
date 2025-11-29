@@ -32,8 +32,8 @@ def test_create_project_with_valid_inputs(manager):
         manager.add_entity(detail=detail)
 
     # Check project is created
-    assert len(manager.get_entities()) == 1
-    created_project = manager.get_entities()[0]
+    assert len(manager.get_repo_list()) == 1
+    created_project = manager.get_repo_list()[0]
     assert created_project.detail.title == "ValidTitle"
     assert created_project.detail.description == "ValidDescription"
 

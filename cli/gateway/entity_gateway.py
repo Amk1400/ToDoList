@@ -14,7 +14,7 @@ class EntityGateway(ABC, Generic[T]):
         self._fetcher = CliFetcher(manager)
 
     def get_entities(self) -> List[T]:
-        return self._manager.get_entities()
+        return self._manager.get_repo_list()
 
     def create_entity(self) -> None:
         self._manager.validate_creation()

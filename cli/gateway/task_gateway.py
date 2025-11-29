@@ -1,3 +1,5 @@
+from typing import List
+
 from cli.fetcher import CliFetcher
 from models.models import Task, Project
 from service.task_manager import TaskManager

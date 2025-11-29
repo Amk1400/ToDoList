@@ -46,4 +46,4 @@ def test_delete_task_success(manager, project_with_tasks):
         mock_print.assert_any_call(f"✅{task.detail.title} Deleted successfully.")
 
     assert task not in project_with_tasks.tasks
-    assert task not in task_manager.get_entities()
+    assert task not in task_manager.get_repo_list()

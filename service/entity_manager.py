@@ -2,34 +2,34 @@ from abc import ABC, abstractmethod
 from datetime import date
 from typing import TypeVar, Generic, List, Optional
 from core.config import AppConfig
-from core.validator import NonEmptyTextValidator, MaxCountValidator
 from models.models import Detail, Project
+from repository.entity_repository import EntityRepository
+from core.validator import NonEmptyTextValidator, MaxCountValidator
 
 T = TypeVar("T")
 
 
-class BaseManager(ABC, Generic[T]):
-    """Abstract base manager providing reusable CRUD operations with validator integration."""
+class EntityManager(ABC, Generic[T]):
+    """Base manager providing CRUD operations with validator integration."""
 
-    def __init__(self, config: AppConfig) -> None:
+    def __init__(self, config: AppConfig, repository: EntityRepository[T]) -> None:
         self._config: AppConfig = config
-        self._entity_list: List[T] = []
+        self._repository: EntityRepository[T] = repository
 
     def add_entity(self, detail: Detail, deadline: Optional[date] = None, status: Optional[str] = None) -> None:
-        """Validate creation and append entity; all exceptions come from validators."""
+        """Validate and add entity."""
         self.validate_creation()
         entity = self._create_entity_object(detail, deadline, status)
-        self._entity_list.append(entity)
+        self._append_to_repository(entity)
 
     def remove_entity_object(self, entity: T) -> None:
-        """Remove entity; cascade delete for projects."""
-        if isinstance(entity, Project):
-            self._cascade_delete_tasks(entity)
-        if entity in self._entity_list:
-            self._entity_list.remove(entity)
+        """Remove entity and handle cascade deletes if needed."""
+        self._cascade_delete_tasks(entity)
+        self._remove_from_repository(entity)
 
-    def get_entities(self) -> List[T]:
-        return self._entity_list
+    @abstractmethod
+    def get_repo_list(self) -> List[T]:
+        raise NotImplementedError
 
     def update_entity_fields(
         self,
@@ -38,12 +38,23 @@ class BaseManager(ABC, Generic[T]):
         deadline: Optional[date] = None,
         status: Optional[str] = None
     ) -> None:
-        """Update entity fields with validators; skip_current_title used for editing."""
-        self._update_entity_detail(entity, detail)
-        self._update_deadline_and_status(deadline, entity, status)
+        """Update entity fields and status."""
+        self._update_detail_by_repo(entity, detail)
+        self._update_deadline_and_status_by_repo(deadline, entity, status)
+
+    def _append_to_repository(self, entity: T) -> None:
+        """Append entity to repository."""
+        self._repository.append_to_db(entity)  # type: ignore
+
+    def _remove_from_repository(self, entity: T) -> None:
+        """Remove entity from repository."""
+        self._repository.remove_from_db(entity)  # type: ignore
+
+    def _update_detail_by_repo(self, entity: T, detail: Detail) -> None:
+        entity.detail = detail
 
     @abstractmethod
-    def _update_deadline_and_status(self, deadline, entity, status):
+    def _update_deadline_and_status_by_repo(self, deadline, entity, status):
         raise NotImplementedError
 
     @abstractmethod
@@ -51,8 +62,9 @@ class BaseManager(ABC, Generic[T]):
         raise NotImplementedError
 
     @abstractmethod
-    def _create_entity_object(self, detail: Detail,
-                              deadline: Optional[date] = None, status: Optional[str] = None) -> T:
+    def _create_entity_object(
+        self, detail: Detail, deadline: Optional[date] = None, status: Optional[str] = None
+    ) -> T:
         raise NotImplementedError
 
     @abstractmethod
@@ -71,30 +83,27 @@ class BaseManager(ABC, Generic[T]):
     def _get_max_title_length(self) -> int:
         raise NotImplementedError
 
-    def _update_entity_detail(self, entity: T, detail: Detail) -> None:
-        entity.detail = detail
-
     # ---------- Validators ----------
 
     def validate_creation(self) -> None:
-        """Validate entity creation using MaxCountValidator."""
+        """Validate max count."""
         MaxCountValidator(
             max_count=self._get_max_count(),
-            current_count=len(self._entity_list),
+            current_count=len(self.get_repo_list()),
             field_name=self.entity_name()
         ).validate()
 
     def validate_title(self, title: str, skip_current: Optional[str] = None) -> None:
-        """Validate title using NonEmptyTextValidator; skip_current used for editing."""
+        """Validate title for non-empty and max length."""
         NonEmptyTextValidator(
             max_length=self._get_max_title_length(),
             field_name=f"{self.entity_name()} title",
-            existing_values=[e.detail.title for e in self._entity_list],
+            existing_values=[e.detail.title for e in self.get_repo_list()],
             skip_current=skip_current
         ).validate(title)
 
     def validate_description(self, description: str) -> None:
-        """Validate description using NonEmptyTextValidator."""
+        """Validate description for non-empty and max length."""
         NonEmptyTextValidator(
             max_length=self._get_max_desc_length(),
             field_name=f"{self.entity_name()} description"

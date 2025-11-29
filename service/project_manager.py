@@ -1,33 +1,36 @@
-from datetime import date
-from typing import Optional
+from typing import Optional, List
 from core.config import AppConfig
 from models.models import Detail, Project
-from service.base_manager import BaseManager
+from repository.project_repository import ProjectRepository
+from service.entity_manager import EntityManager
 from service.task_manager import TaskManager
+from db.db import DataBase
 
-class ProjectManager(BaseManager[Project]):
-    """Manager class responsible for handling all project-level operations."""
 
-    def __init__(self, config: AppConfig) -> None:
-        super().__init__(config)
-        self._task_manager: TaskManager = TaskManager(config)
+class ProjectManager(EntityManager[Project]):
+    """Manager for project-level operations."""
 
-    def get_task_manager(self) -> TaskManager:
-        return self._task_manager
+    def __init__(self, config: AppConfig, db: DataBase) -> None:
+        repository = ProjectRepository(db)
+        super().__init__(config, repository)
+        self._task_manager: TaskManager | None = None
 
-    def _cascade_delete_tasks(self, entity):
-        # Cascade delete tasks
-        for task in list(entity.tasks):
-            self._task_manager.remove_entity_object(task)
+    def set_task_manager(self, task_manager: TaskManager) -> None:
+        """Set TaskManager for cascade delete operations."""
+        self._task_manager = task_manager
+
+    def _cascade_delete_tasks(self, entity: Project) -> None:
+        if self._task_manager:
+            for task in list(entity.tasks):
+                self._task_manager.remove_entity_object(task)
 
     def entity_name(self) -> str:
         return "Project"
 
-    def _create_entity_object(self, detail: Detail,
-                              deadline: Optional[date] = None, status: Optional[str] = None) -> Project:
+    def _create_entity_object(self, detail: Detail, deadline=None, status=None) -> Project:
         return Project(detail=detail)
 
-    def _update_deadline_and_status(self, deadline, entity, status):
+    def _update_deadline_and_status_by_repo(self, deadline, entity, status):
         return None
 
     def _get_max_desc_length(self) -> int:
@@ -38,3 +41,14 @@ class ProjectManager(BaseManager[Project]):
 
     def _get_max_count(self) -> int:
         return self._config.max_projects
+
+    def get_task_manager(self) -> TaskManager | None:
+        """Return the linked TaskManager."""
+        return self._task_manager
+
+    def get_repo_list(self) -> List[Project]:
+        return self._repository.get_db_list()
+
+    def _append_to_repository(self, entity: Project) -> None:
+        """Append entity to repository."""
+        self._repository.append_to_db(entity)

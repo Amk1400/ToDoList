@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 from cli.gateway.entity_gateway import EntityGateway
 from models.models import Project
 from service.task_manager import TaskManager

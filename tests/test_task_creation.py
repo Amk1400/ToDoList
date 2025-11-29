@@ -27,7 +27,7 @@ def manager():
 def project(manager):
     detail = Detail(title="Project1", description="Desc1")
     manager.add_entity(detail)
-    proj = manager.get_entities()[0]
+    proj = manager.get_repo_list()[0]
     tm = manager.get_task_manager()
     tm.set_current_project(proj)
     return proj

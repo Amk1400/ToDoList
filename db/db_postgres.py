@@ -1,143 +1,113 @@
-from __future__ import annotations
-from typing import List, Optional
+from typing import List, Type
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
 import psycopg2
-from psycopg2.extensions import connection as PGConnection
-from psycopg2.extras import RealDictCursor
 from models.models import Project, Task, Detail
-from abc import ABC
 from db.db_interface import DatabaseInterface
+from db.orm_models import Base, ProjectORM, TaskORM
 
-
-class PostgresDatabase(DatabaseInterface, ABC):
-    """PostgreSQL database connector with auto-create and fetch."""
+class PostgresDatabase(DatabaseInterface):
+    """PostgreSQL database using SQLAlchemy ORM with auto-create database."""
 
     def __init__(
-            self,
-            db_name: str,
-            user: str,
-            password: str,
-            host: str = "localhost",
-            port: int = 5432
+        self,
+        db_name: str,
+        user: str,
+        password: str,
+        host: str = "localhost",
+        port: int = 5432
     ) -> None:
         self._db_name = db_name
         self._user = user
         self._password = password
         self._host = host
         self._port = port
-        self._conn: Optional[PGConnection] = None
-        self.projects: List[Project] = []
 
-        # بررسی و ایجاد دیتابیس
+        # اطمینان از وجود دیتابیس
         self._ensure_database_exists()
-        # اتصال به دیتابیس
-        self._connect()
-        # بررسی و ایجاد جدول‌ها
-        self._ensure_tables_exist()
-        # بارگذاری داده‌ها
+
+        # اتصال اصلی به دیتابیس هدف
+        self._engine = create_engine(
+            f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}"
+        )
+        self._SessionLocal = sessionmaker(bind=self._engine)
+
+        # ایجاد جدول‌ها در دیتابیس
+        Base.metadata.create_all(self._engine)
+
+        # بارگذاری داده‌ها به حافظه
+        self.projects: List[Project] = []
         self._load_data()
 
     # ---------- Database & Table Setup ----------
 
     def _ensure_database_exists(self) -> None:
-        conn = psycopg2.connect(
-            dbname="postgres",
-            user=self._user,
-            password=self._password,
-            host=self._host,
-            port=self._port,
-        )
-        conn.autocommit = True
-        cur = conn.cursor()
-        cur.execute("SELECT 1 FROM pg_database WHERE datname=%s", (self._db_name,))
-        if not cur.fetchone():
-            cur.execute(f'CREATE DATABASE "{self._db_name}"')
-            print(f"Database '{self._db_name}' created.")
-        else:
-            print(f"Database '{self._db_name}' already exists.")
-        cur.close()
-        conn.close()
-
-    def _connect(self) -> None:
-        self._conn = psycopg2.connect(
-            dbname=self._db_name,
-            user=self._user,
-            password=self._password,
-            host=self._host,
-            port=self._port,
-        )
-        self._conn.autocommit = True
-        print(f"Connected to database '{self._db_name}'.")
-
-    def _ensure_tables_exist(self) -> None:
-        with self._conn.cursor() as cur:
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS project (
-                    id SERIAL PRIMARY KEY,
-                    title VARCHAR(100) NOT NULL,
-                    description TEXT NOT NULL
-                );
-                """
+        """Create database if it does not exist."""
+        try:
+            conn = psycopg2.connect(
+                dbname="postgres",
+                user=self._user,
+                password=self._password,
+                host=self._host,
+                port=self._port,
             )
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS task (
-                    id SERIAL PRIMARY KEY,
-                    project_id INTEGER REFERENCES project(id) ON DELETE CASCADE,
-                    title VARCHAR(100) NOT NULL,
-                    description TEXT NOT NULL,
-                    deadline DATE,
-                    status VARCHAR(20)
-                );
-                """
-            )
-        print("Tables ensured in database.")
+            conn.autocommit = True
+            cur = conn.cursor()
+            cur.execute("SELECT 1 FROM pg_database WHERE datname=%s", (self._db_name,))
+            if not cur.fetchone():
+                cur.execute(f'CREATE DATABASE "{self._db_name}"')
+                print(f"Database '{self._db_name}' created.")
+            else:
+                print(f"Database '{self._db_name}' already exists.")
+            cur.close()
+            conn.close()
+        except Exception as e:
+            raise RuntimeError(f"Failed to ensure database exists: {e}")
 
     # ---------- Data Loading ----------
 
     def _load_data(self) -> None:
-        """Load projects and tasks from database."""
+        """Load projects and tasks from database into memory."""
         self.projects.clear()
-        with self._conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT * FROM project;")
-            projects_raw = cur.fetchall()
-            for proj in projects_raw:
-                cur.execute("SELECT * FROM task WHERE project_id=%s;", (proj["id"],))
-                tasks_raw = cur.fetchall()
-                tasks: List[Task] = [
+        with self._SessionLocal() as session:
+            orm_projects: List[Type[ProjectORM]] = session.query(ProjectORM).all()
+            for p in orm_projects:
+                tasks = [
                     Task(
-                        detail=Detail(title=t["title"], description=t["description"]),
-                        deadline=t["deadline"],
-                        status=t["status"]
+                        detail=Detail(title=t.title, description=t.description),
+                        deadline=t.deadline,
+                        status=t.status
                     )
-                    for t in tasks_raw
+                    for t in p.tasks
                 ]
                 project_obj = Project(
-                    detail=Detail(title=proj["title"], description=proj["description"]),
+                    detail=Detail(title=p.title, description=p.description),
                     tasks=tasks
                 )
                 self.projects.append(project_obj)
         print(f"Loaded {len(self.projects)} projects from database.")
 
+    def _get_project_orm(self, session: Session, project: Project) -> Type[ProjectORM]:
+        orm_project = session.query(ProjectORM).filter_by(title=project.detail.title).first()
+        if not orm_project:
+            raise ValueError(f"Project '{project.detail.title}' not found in DB.")
+        return orm_project
+
     # ---------- Project Methods ----------
 
     def add_project(self, project: Project) -> None:
-        with self._conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO project (title, description) VALUES (%s, %s) RETURNING id;",
-                (project.detail.title, project.detail.description)
-            )
-        self.projects.append(project)
-        print(f"Project '{project.detail.title}' added.")
+        with self._SessionLocal() as session:
+            orm_project = ProjectORM(title=project.detail.title, description=project.detail.description)
+            session.add(orm_project)
+            session.commit()
+            self.projects.append(project)
 
     def remove_project(self, project: Project) -> None:
-        with self._conn.cursor() as cur:
-            cur.execute(
-                "DELETE FROM project WHERE title=%s;",
-                (project.detail.title,)
-            )
-        self.projects = [p for p in self.projects if p.detail.title != project.detail.title]
-        print(f"Project '{project.detail.title}' removed.")
+        with self._SessionLocal() as session:
+            orm_project = self._get_project_orm(session, project)
+            session.delete(orm_project)
+            session.commit()
+            self.projects = [p for p in self.projects if p.detail.title != project.detail.title]
 
     def get_projects(self) -> List[Project]:
         return self.projects
@@ -145,40 +115,31 @@ class PostgresDatabase(DatabaseInterface, ABC):
     # ---------- Task Methods ----------
 
     def add_task(self, project: Project, task: Task) -> None:
-        proj = self._find_project(project)
-        with self._conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO task (project_id, title, description, deadline, status)
-                SELECT id, %s, %s, %s, %s FROM project WHERE title=%s;
-                """,
-                (task.detail.title, task.detail.description, task.deadline, task.status, project.detail.title)
+        with self._SessionLocal() as session:
+            orm_project = self._get_project_orm(session, project)
+            orm_task = TaskORM(
+                project_id=orm_project.id,
+                title=task.detail.title,
+                description=task.detail.description,
+                deadline=task.deadline,
+                status=task.status
             )
-        proj.tasks.append(task)
-        print(f"Task '{task.detail.title}' added to project '{project.detail.title}'.")
+            session.add(orm_task)
+            session.commit()
+            # update in-memory
+            project_obj = next(p for p in self.projects if p.detail.title == project.detail.title)
+            project_obj.tasks.append(task)
 
     def remove_task(self, project: Project, task: Task) -> None:
-        proj = self._find_project(project)
-        with self._conn.cursor() as cur:
-            cur.execute(
-                """
-                DELETE FROM task
-                WHERE project_id = (SELECT id FROM project WHERE title=%s)
-                  AND title=%s;
-                """,
-                (project.detail.title, task.detail.title)
-            )
-        proj.tasks = [t for t in proj.tasks if t.detail.title != task.detail.title]
-        print(f"Task '{task.detail.title}' removed from project '{project.detail.title}'.")
+        with self._SessionLocal() as session:
+            orm_project = self._get_project_orm(session, project)
+            orm_task = session.query(TaskORM).filter_by(project_id=orm_project.id, title=task.detail.title).first()
+            if orm_task:
+                session.delete(orm_task)
+                session.commit()
+            project_obj = next(p for p in self.projects if p.detail.title == project.detail.title)
+            project_obj.tasks = [t for t in project_obj.tasks if t.detail.title != task.detail.title]
 
     def get_tasks(self, project: Project) -> List[Task]:
-        proj = self._find_project(project)
+        proj = next(p for p in self.projects if p.detail.title == project.detail.title)
         return proj.tasks
-
-    # ---------- Helper Methods ----------
-
-    def _find_project(self, project: Project) -> Project:
-        for p in self.projects:
-            if p.detail.title == project.detail.title:
-                return p
-        raise ValueError(f"Project '{project.detail.title}' not found.")

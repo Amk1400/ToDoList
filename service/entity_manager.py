@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import date
 from typing import TypeVar, Generic, List, Optional
 from core.config import AppConfig
-from models.models import Detail
+from models.models import Detail, Project
 from repository.entity_repository import EntityRepository
 from core.validator import NonEmptyTextValidator, MaxCountValidator
 
@@ -22,32 +22,25 @@ class EntityManager(ABC, Generic[T]):
         entity = self._create_entity_object(detail, deadline, status)
         self._append_to_repository(entity)
 
+    @abstractmethod
     def remove_entity_object(self, entity: T) -> None:
         """Remove entity and handle cascade deletes if needed."""
-        self._cascade_delete_tasks(entity)
-        self._remove_from_repository(entity)
+        raise NotImplementedError
 
     @abstractmethod
     def get_repo_list(self) -> List[T]:
         raise NotImplementedError
 
-    def update_entity_fields(
-        self,
-        entity: T,
-        detail: Detail,
-        deadline: Optional[date] = None,
-        status: Optional[str] = None
-    ) -> None:
-        """Update entity fields and status."""
-        self._update_detail_by_repo(entity, detail)
-        self._update_deadline_and_status_by_repo(deadline, entity, status)
+    def update_entity_object(self, old_entity: T, new_entity: T, parent_project: Optional[Project] = None) -> None:
+        """Update an entity in repository."""
+        self._repository.update_entity(parent_project, old_entity, new_entity)
 
     def _append_to_repository(self, entity: T) -> None:
         """Append entity to repository."""
         self._repository.append_to_db(entity)  # type: ignore
 
     @abstractmethod
-    def _remove_from_repository(self, entity: T) -> None:
+    def _remove_from_repository(self, entity: T, parent_project: Optional[Project] = None) -> None:
         raise NotImplementedError
 
     def _update_detail_by_repo(self, entity: T, detail: Detail) -> None:
@@ -65,10 +58,6 @@ class EntityManager(ABC, Generic[T]):
     def _create_entity_object(
         self, detail: Detail, deadline: Optional[date] = None, status: Optional[str] = None
     ) -> T:
-        raise NotImplementedError
-
-    @abstractmethod
-    def _cascade_delete_tasks(self, entity) -> None:
         raise NotImplementedError
 
     @abstractmethod

@@ -1,10 +1,13 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List
-from models.models import Project, Task
+from datetime import date
+from typing import List, TypeVar, Generic, Optional
+from models.models import Project, Task, Detail
+
+T = TypeVar("T", Project, Task)
 
 
-class DatabaseInterface(ABC):
+class DatabaseInterface(ABC, Generic[T]):
     """Abstract database interface for project and task operations."""
 
     @abstractmethod
@@ -15,6 +18,18 @@ class DatabaseInterface(ABC):
     @abstractmethod
     def remove_project(self, project: Project) -> None:
         """Remove a project from the database."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def update_entity(self, parent_project: Optional[Project], old_entity: T, new_entity: T) -> None:
+        """
+        Update an entity in the database.
+
+        Args:
+            parent_project (Optional[Project]): Required for tasks; None for projects.
+            old_entity (T): Existing entity to update.
+            new_entity (T): New entity with updated data.
+        """
         raise NotImplementedError
 
     @abstractmethod

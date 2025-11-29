@@ -30,8 +30,8 @@ def setup_task_environment():
     )
 
     project.tasks.append(task)
-    manager.set_current_project(project)
-    gateway = TaskGateway(manager=manager, project=project)
+    manager.set_parent_project(project)
+    gateway = TaskGateway(manager=manager, parent_project=project)
 
     return gateway, project, task
 

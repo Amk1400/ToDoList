@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
+from datetime import date
 from typing import Generic, TypeVar, List
 from db.db_inmemory import InMemoryDatabase
+from models.models import Project, Detail
 
 T = TypeVar("T")
 
@@ -24,4 +26,9 @@ class EntityRepository(ABC, Generic[T]):
     @abstractmethod
     def remove_from_db(self, entity: T, project: object | None = None) -> None:
         """Remove entity from database; project is required for nested entities like Task."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def update_entity(self, parent_project: Project | None, old_entity: T, new_entity: T) -> None:
+        """Update an entity in the database; parent_project required for nested entities."""
         raise NotImplementedError

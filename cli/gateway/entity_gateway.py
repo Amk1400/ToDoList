@@ -22,16 +22,30 @@ class EntityGateway(ABC, Generic[T]):
         optional = self._fetch_optional_create()
         self._manager.add_entity(detail, optional.get("deadline"), optional.get("status"))
 
-    def edit_entity(self, entity: T) -> None:
-        detail = self._fetch_detail(entity.detail.title)
-        optional = self._fetch_optional_edit(entity)
-        self._manager.update_entity_fields(entity, detail, **optional)
+    def edit_entity(self, old_entity: T) -> None:
+        """Edit entity and push updates to the manager using new entity object."""
+        detail = self._fetch_detail(old_entity.detail.title)
+        optional = self._fetch_optional_edit(old_entity)
+        new_entity = self._manager._create_entity_object(
+            detail,
+            optional.get("deadline"),
+            optional.get("status")
+        )
+        # Use the new update_entity_object method
+        if hasattr(self._manager, "_parent_project"):
+            parent_project = getattr(self._manager, "_parent_project", None)
+        else:
+            parent_project = None
+        self._manager.update_entity_object(old_entity, new_entity, parent_project)
 
     def delete_entity(self, entity: T) -> None:
         self._manager.remove_entity_object(entity)
 
     def _fetch_detail(self, curret_title: Optional[str] = None) -> Detail:
-        return Detail(title=self._fetcher.fetch_title(curret_title),description=self._fetcher.fetch_description())
+        return Detail(
+            title=self._fetcher.fetch_title(curret_title),
+            description=self._fetcher.fetch_description()
+        )
 
     @abstractmethod
     def _fetch_optional_create(self) -> Dict:

@@ -29,7 +29,7 @@ def project(manager):
     manager.add_entity(detail)
     proj = manager.get_repo_list()[0]
     tm = manager.get_task_manager()
-    tm.set_current_project(proj)
+    tm.set_parent_project(proj)
     return proj
 
 def test_task_valid_creation(manager, project):

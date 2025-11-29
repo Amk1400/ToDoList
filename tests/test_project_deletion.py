@@ -32,7 +32,7 @@ def project_with_tasks(manager):
     project = manager.get_repo_list()[0]
 
     task_manager = manager.get_task_manager()
-    task_manager.set_current_project(project)
+    task_manager.set_parent_project(project)
 
     # ساخت یک تسک با deadline معتبر (مثلا فردا)
     deadline = date.today() + timedelta(days=1)

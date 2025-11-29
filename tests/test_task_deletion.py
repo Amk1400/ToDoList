@@ -25,7 +25,7 @@ def manager():
 @pytest.fixture
 def project_with_tasks(manager):
     project = Project(detail=Detail(title="Project1", description="Desc1"))
-    manager.set_current_project(project)
+    manager.set_parent_project(project)
 
     # ایجاد یک تسک معتبر
     deadline = date.today() + timedelta(days=1)
@@ -38,7 +38,7 @@ def test_delete_task_success(manager, project_with_tasks):
     """Deleting a task should remove it from project and manager."""
     task_manager = manager
     task = project_with_tasks.tasks[0]
-    gateway = TaskGateway(manager=task_manager, project=project_with_tasks)
+    gateway = TaskGateway(manager=task_manager, parent_project=project_with_tasks)
     menu = TaskModifyMenu(gateway=gateway, project=project_with_tasks, task=task)
 
     with patch("builtins.input", side_effect=["y"]), patch("builtins.print") as mock_print:

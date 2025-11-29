@@ -17,11 +17,12 @@ class ProjectModifyMenu(EntityModifyMenu[ProjectGateway]):
         parent_menu: Optional[BaseMenu] = None
     ) -> None:
         super().__init__(gateway, None, project, parent_menu)
+        self._project = project
         self._title = f"Modify Project: {project.detail.title}"
 
     def _add_show_tasks_option(self) -> None:
         self.add_option(Option("Show Tasks", self._show_tasks))
 
     def _show_tasks(self) -> None:
-        task_gateway = TaskGateway(self._gateway.get_task_manager(), self._entity)
+        task_gateway = TaskGateway(self._gateway.get_task_manager(self._project), self._entity)
         TaskManagementMenu(task_gateway, self._entity, parent_menu=self).run()

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import date
 from typing import TypeVar, Generic, List, Optional
 from core.config import AppConfig
-from models.models import Detail, Project
+from models.models import Detail
 from repository.entity_repository import EntityRepository
 from core.validator import NonEmptyTextValidator, MaxCountValidator
 
@@ -46,9 +46,9 @@ class EntityManager(ABC, Generic[T]):
         """Append entity to repository."""
         self._repository.append_to_db(entity)  # type: ignore
 
+    @abstractmethod
     def _remove_from_repository(self, entity: T) -> None:
-        """Remove entity from repository."""
-        self._repository.remove_from_db(entity)  # type: ignore
+        raise NotImplementedError
 
     def _update_detail_by_repo(self, entity: T, detail: Detail) -> None:
         entity.detail = detail

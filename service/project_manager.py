@@ -1,10 +1,10 @@
-from typing import Optional, List
+from typing import List
 from core.config import AppConfig
+from db.db import DataBase
 from models.models import Detail, Project
 from repository.project_repository import ProjectRepository
 from service.entity_manager import EntityManager
 from service.task_manager import TaskManager
-from db.db import DataBase
 
 
 class ProjectManager(EntityManager[Project]):
@@ -13,6 +13,8 @@ class ProjectManager(EntityManager[Project]):
     def __init__(self, config: AppConfig, db: DataBase) -> None:
         repository = ProjectRepository(db)
         super().__init__(config, repository)
+        self._config = config
+        self._db = db
         self._task_manager: TaskManager | None = None
 
     def set_task_manager(self, task_manager: TaskManager) -> None:
@@ -20,9 +22,12 @@ class ProjectManager(EntityManager[Project]):
         self._task_manager = task_manager
 
     def _cascade_delete_tasks(self, entity: Project) -> None:
-        if self._task_manager:
+        task_manager = self.get_task_manager(entity)
+        if task_manager:
+            task_manager.set_current_project(entity)
             for task in list(entity.tasks):
-                self._task_manager.remove_entity_object(task)
+                self.get_task_manager(entity).remove_entity_object(task)
+                print(f"{task.detail.title} deleted cascading")
 
     def entity_name(self) -> str:
         return "Project"
@@ -42,9 +47,14 @@ class ProjectManager(EntityManager[Project]):
     def _get_max_count(self) -> int:
         return self._config.max_projects
 
-    def get_task_manager(self) -> TaskManager | None:
-        """Return the linked TaskManager."""
+    def get_task_manager(self, project: Project) -> TaskManager | None:
+        if self._task_manager is None:
+            from service.task_manager import TaskManager
+            task_manager = TaskManager(self._config, self._db, project)
+            self.set_task_manager(task_manager)
+        self._task_manager.set_current_project(project)
         return self._task_manager
+
 
     def get_repo_list(self) -> List[Project]:
         return self._repository.get_db_list()
@@ -52,3 +62,7 @@ class ProjectManager(EntityManager[Project]):
     def _append_to_repository(self, entity: Project) -> None:
         """Append entity to repository."""
         self._repository.append_to_db(entity)
+
+    def _remove_from_repository(self, entity: Project) -> None:
+        """Remove entity from repository."""
+        self._repository.remove_from_db(entity)

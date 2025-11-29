@@ -14,36 +14,43 @@ class DataBase:
         self.projects = []
         self._initialize_demo_data()
 
+    # ---------- Project Methods ----------
+
     def add_project(self, project: Project) -> None:
         self.projects.append(project)
 
     def remove_project(self, project: Project) -> None:
-        self.projects.remove(project)
+        db_project = self._find_project(project)
+        self.projects.remove(db_project)
 
     def get_projects(self) -> List[Project]:
         return self.projects
 
+    # ---------- Task Methods ----------
+
     def add_task(self, project: Project, task: Task) -> None:
         db_project = self._find_project(project)
         if task in db_project.tasks:
-            raise ValueError("Task already exists.")
+            raise ValueError(f"Task '{task.detail.title}' already exists in project '{db_project.detail.title}'.")
         db_project.tasks.append(task)
 
     def remove_task(self, project: Project, task: Task) -> None:
         db_project = self._find_project(project)
         if task not in db_project.tasks:
-            raise ValueError("Task not found.")
+            raise ValueError(f"Task '{task.detail.title}' not found in project '{db_project.detail.title}'.")
         db_project.tasks.remove(task)
 
     def get_tasks(self, project: Project) -> List[Task]:
         db_project = self._find_project(project)
         return db_project.tasks
 
+    # ---------- Helper Methods ----------
+
     def _find_project(self, project: Project) -> Project:
         for p in self.projects:
             if p.detail.title == project.detail.title:
                 return p
-        raise ValueError("Project not found.")
+        raise ValueError(f"Project '{project.detail.title}' not found.")
 
     def _initialize_demo_data(self) -> None:
         """Load demo projects."""

@@ -12,16 +12,16 @@ class EntityRepository(ABC, Generic[T]):
         self._db: DataBase = db
 
     @abstractmethod
-    def get_db_list(self, *args, **kwargs) -> List[T]:
-        """Return list of entities."""
+    def get_db_list(self, project: object | None = None) -> List[T]:
+        """Return list of entities; project is required for nested entities like Task."""
         raise NotImplementedError
 
     @abstractmethod
-    def append_to_db(self, *args, **kwargs) -> None:
-        """Add entity to database."""
+    def append_to_db(self, entity: T, project: object | None = None) -> None:
+        """Add entity to database; project is required for nested entities like Task."""
         raise NotImplementedError
 
     @abstractmethod
-    def remove_from_db(self, *args, **kwargs) -> None:
-        """Remove entity from database."""
+    def remove_from_db(self, entity: T, project: object | None = None) -> None:
+        """Remove entity from database; project is required for nested entities like Task."""
         raise NotImplementedError

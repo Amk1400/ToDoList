@@ -1,17 +1,13 @@
-from dataclasses import dataclass
 from datetime import date
 from typing import List
-
 from models.models import Project, Task, Detail
+from db.db_interface import DatabaseInterface
 
-
-@dataclass
-class DataBase:
-    """Simple in-memory database."""
-    projects: List[Project]
+class InMemoryDatabase(DatabaseInterface):
+    """In-memory database implementation."""
 
     def __init__(self) -> None:
-        self.projects = []
+        self.projects: List[Project] = []
         self._initialize_demo_data()
 
     # ---------- Project Methods ----------
@@ -53,7 +49,6 @@ class DataBase:
         raise ValueError(f"Project '{project.detail.title}' not found.")
 
     def _initialize_demo_data(self) -> None:
-        """Load demo projects."""
         project1 = Project(
             detail=Detail("Project A", "Demo project A"),
             tasks=[
@@ -64,7 +59,6 @@ class DataBase:
                 )
             ],
         )
-
         project2 = Project(
             detail=Detail("Project B", "Demo project B"),
             tasks=[
@@ -80,5 +74,4 @@ class DataBase:
                 ),
             ],
         )
-
         self.projects = [project1, project2]

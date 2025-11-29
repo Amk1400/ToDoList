@@ -1,6 +1,6 @@
 from typing import List
 from core.config import AppConfig
-from db.db import DataBase
+from db.db_inmemory import InMemoryDatabase
 from models.models import Detail, Project
 from repository.project_repository import ProjectRepository
 from service.entity_manager import EntityManager
@@ -10,7 +10,7 @@ from service.task_manager import TaskManager
 class ProjectManager(EntityManager[Project]):
     """Manager for project-level operations."""
 
-    def __init__(self, config: AppConfig, db: DataBase) -> None:
+    def __init__(self, config: AppConfig, db: InMemoryDatabase) -> None:
         repository = ProjectRepository(db)
         super().__init__(config, repository)
         self._config = config

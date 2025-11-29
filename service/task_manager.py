@@ -5,13 +5,13 @@ from models.models import Detail, Task, Project
 from repository.task_repository import TaskRepository
 from service.entity_manager import EntityManager
 from core.validator import StatusValidator, DeadlineValidator
-from db.db import DataBase
+from db.db_inmemory import InMemoryDatabase
 
 
 class TaskManager(EntityManager[Task]):
     """Manager for task-level operations."""
 
-    def __init__(self, config: AppConfig, db: DataBase, current_project: Optional[Project] = None) -> None:
+    def __init__(self, config: AppConfig, db: InMemoryDatabase, current_project: Optional[Project] = None) -> None:
         repository = TaskRepository(db)
         super().__init__(config, repository)
         self._current_project: Optional[Project] = None

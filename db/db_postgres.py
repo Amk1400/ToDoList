@@ -1,14 +1,16 @@
-from typing import List, Optional, TypeVar, Type
+from __future__ import annotations
+from typing import List, Optional, TypeVar, Generic, Type
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from db.orm_models import ProjectORM, TaskORM, Base
 from models.models import Project, Task, Detail
 from db.db_interface import DatabaseInterface
-T = TypeVar("T")
+
+T = TypeVar("T", Project, Task)
 
 
-class PostgresDatabase(DatabaseInterface[T]):
-    """PostgreSQL ORM database connector."""
+class PostgresDatabase(DatabaseInterface[T], Generic[T]):
+    """PostgreSQL ORM database connector with unified entity methods."""
 
     def __init__(self, url: str) -> None:
         self._engine = create_engine(url, echo=False, future=True)
@@ -17,134 +19,161 @@ class PostgresDatabase(DatabaseInterface[T]):
         Base.metadata.create_all(self._engine)
         self._load()
 
-    def add_project(self, project: Project) -> None:
+    # ----------------- Unified Add/Remove -----------------
+    def add_entity(self, entity: T, parent: Optional[Project] = None) -> None:
         try:
             with self._session_factory() as session:
-                obj = ProjectORM(title=project.detail.title, description=project.detail.description)
-                session.add(obj)
-                session.commit()
-                self._projects.append(project)
+                self._apply_add_of(session, entity, parent)
         except Exception as exc:
-            raise RuntimeError("Failed to add project.") from exc
+            raise RuntimeError("Failed to add entity.") from exc
 
-    def remove_project(self, project: Project) -> None:
+    def remove_entity(self, entity: T, parent: Optional[Project] = None) -> None:
         try:
             with self._session_factory() as session:
-                obj = self._find_project_orm(session, project)
-                session.delete(obj)
-                session.commit()
-                self._projects = [p for p in self._projects if p.detail.title != project.detail.title]
+                self._apply_remove_of(session, entity, parent)
         except Exception as exc:
-            raise RuntimeError("Failed to remove project.") from exc
+            raise RuntimeError("Failed to remove entity.") from exc
+
+    # ----------------- Apply Methods -----------------
+    def _apply_add_of(self, session: Session, entity: T, parent: Optional[Project]) -> None:
+        container, orm_obj = self._initialize_orm_container(entity, parent, session, for_add=True)
+        try:
+            session.add(orm_obj)
+            session.commit()
+            container.append(entity)
+        except Exception as exc:
+            session.rollback()
+            raise RuntimeError("Failed to add entity.") from exc
+
+    def _apply_remove_of(self, session: Session, entity: T, parent: Optional[Project]) -> None:
+        container, orm_obj = self._initialize_orm_container(entity, parent, session, for_add=False)
+        try:
+            session.delete(orm_obj)
+            session.commit()
+            container.remove(entity)
+        except Exception as exc:
+            session.rollback()
+            raise RuntimeError("Failed to remove entity.") from exc
+
+    def _initialize_orm_container(self, entity: T, parent: Optional[Project], session: Session, for_add: bool):
+        if parent is None:  # Project
+            if for_add:
+                orm_obj = ProjectORM(title=entity.detail.title, description=entity.detail.description)
+            else:
+                orm_obj = self._find_project_orm(session, entity)
+            container: List[T] = self._projects
+        else:  # Task
+            proj_model = self._find_project_model(parent)
+            if for_add:
+                proj_orm = self._find_project_orm(session, parent)
+                orm_obj = self._create_orm_task(entity, proj_orm)
+            else:
+                orm_obj = self._find_task_orm(session, parent, entity)
+            container = proj_model.tasks
+        return container, orm_obj
+
+    def _create_orm_task(self, entity: Task, proj_orm: ProjectORM) -> TaskORM:
+        return TaskORM(
+            project_id=proj_orm.id,
+            title=entity.detail.title,
+            description=entity.detail.description,
+            deadline=entity.deadline,
+            status=entity.status,
+        )
+
+    # ----------------- Interface Wrappers -----------------
+    def add_project(self, project: Project) -> None:
+        self.add_entity(project)
 
     def add_task(self, project: Project, task: Task) -> None:
-        try:
-            with self._session_factory() as session:
-                proj_orm = self._find_project_orm(session, project)
-                obj = TaskORM(
-                    project_id=proj_orm.id,
-                    title=task.detail.title,
-                    description=task.detail.description,
-                    deadline=task.deadline,
-                    status=task.status
-                )
-                session.add(obj)
-                session.commit()
-                proj = self._find_project_model(project)
-                proj.tasks.append(task)
-        except Exception as exc:
-            raise RuntimeError("Failed to add task.") from exc
+        self.add_entity(task, parent=project)
+
+    def remove_project(self, project: Project) -> None:
+        self.remove_entity(project)
 
     def remove_task(self, project: Project, task: Task) -> None:
-        try:
-            with self._session_factory() as session:
-                proj = self._find_project_model(project)
-                task_orm = self._find_task_orm(session, project, task)
-                session.delete(task_orm)
-                session.commit()
-                proj.tasks = [t for t in proj.tasks if t.detail.title != task.detail.title]
-        except Exception as exc:
-            raise RuntimeError("Failed to remove task.") from exc
+        self.remove_entity(task, parent=project)
 
-    def update_entity(self, parent: Optional[Project], old: T, new: T) -> None:
+    # ----------------- Update Method -----------------
+    def update_entity(self, parent_project: Optional[Project], old_entity: T, new_entity: T) -> None:
         try:
             with self._session_factory() as session:
-                if isinstance(old, Project) and isinstance(new, Project):
-                    obj = self._find_project_orm(session, old)
-                    obj.title = new.detail.title
-                    obj.description = new.detail.description
+                if parent_project is None and isinstance(old_entity, Project) and isinstance(new_entity, Project):
+                    orm_obj = self._find_project_orm(session, old_entity)
+                    self._update_detail_of(new_entity, orm_obj)
                     session.commit()
-                    proj = self._find_project_model(old)
-                    proj.detail = new.detail
-                elif isinstance(old, Task) and isinstance(new, Task):
-                    if parent is None:
-                        raise ValueError("Parent project required.")
-                    obj = self._find_task_orm(session, parent, old)
-                    obj.title = new.detail.title
-                    obj.description = new.detail.description
-                    obj.deadline = new.deadline
-                    obj.status = new.status or obj.status
+                    self._find_project_model(old_entity).detail = new_entity.detail
+                elif parent_project is not None and isinstance(old_entity, Task) and isinstance(new_entity, Task):
+                    orm_obj = self._find_task_orm(session, parent_project, old_entity)
+                    self._update_detail_of(new_entity, orm_obj)
+                    orm_obj.deadline = new_entity.deadline
+                    orm_obj.status = new_entity.status
                     session.commit()
-                    t = self._find_task_model(parent, old)
-                    t.detail = new.detail
-                    t.deadline = new.deadline
-                    t.status = new.status or t.status
+                    model_task = self._find_task_model(parent_project, old_entity)
+                    model_task.detail = new_entity.detail
+                    model_task.deadline = new_entity.deadline
+                    model_task.status = new_entity.status
                 else:
-                    raise TypeError("Invalid entity types.")
+                    raise TypeError("Invalid entity types for update.")
         except Exception as exc:
             raise RuntimeError("Failed to update entity.") from exc
 
+    def _update_detail_of(self, new_entity, orm_obj):
+        orm_obj.title = new_entity.detail.title
+        orm_obj.description = new_entity.detail.description
+
+    # ----------------- Get Methods -----------------
     def get_projects(self) -> List[Project]:
         return self._projects
 
     def get_tasks(self, project: Project) -> List[Task]:
-        proj = self._find_project_model(project)
-        return proj.tasks
+        return self._find_project_model(project).tasks
 
+    # ----------------- Load Data -----------------
     def _load(self) -> None:
+        self._projects.clear()
         try:
-            self._projects.clear()
             with self._session_factory() as session:
-                objs = session.query(ProjectORM).order_by(ProjectORM.id).all()
-                for obj in objs:
+                for obj in session.query(ProjectORM).order_by(ProjectORM.id).all():
                     tasks = [
                         Task(
                             detail=Detail(title=t.title, description=t.description),
                             deadline=t.deadline,
-                            status=t.status
+                            status=t.status,
                         )
                         for t in sorted(obj.tasks, key=lambda x: x.id)
                     ]
-                    model = Project(
+                    project_model = Project(
                         detail=Detail(title=obj.title, description=obj.description),
-                        tasks=tasks
+                        tasks=tasks,
                     )
-                    self._projects.append(model)
+                    self._projects.append(project_model)
         except Exception as exc:
             raise RuntimeError("Failed to load data.") from exc
 
+    # ----------------- Helper Find Methods -----------------
     def _find_project_orm(self, session: Session, project: Project) -> Type[ProjectORM]:
         obj = session.query(ProjectORM).filter_by(title=project.detail.title).one_or_none()
         if obj is None:
-            raise ValueError("Project not found.")
+            raise ValueError(f"Project '{project.detail.title}' not found.")
         return obj
 
     def _find_task_orm(self, session: Session, project: Project, task: Task) -> Type[TaskORM]:
-        proj = self._find_project_orm(session, project)
-        obj = session.query(TaskORM).filter_by(project_id=proj.id, title=task.detail.title).one_or_none()
+        proj_orm = self._find_project_orm(session, project)
+        obj = session.query(TaskORM).filter_by(project_id=proj_orm.id, title=task.detail.title).one_or_none()
         if obj is None:
-            raise ValueError("Task not found.")
+            raise ValueError(f"Task '{task.detail.title}' not found in project '{project.detail.title}'.")
         return obj
 
     def _find_project_model(self, project: Project) -> Project:
         for p in self._projects:
             if p.detail.title == project.detail.title:
                 return p
-        raise ValueError("Project model not found.")
+        raise ValueError(f"Project model '{project.detail.title}' not found.")
 
     def _find_task_model(self, project: Project, task: Task) -> Task:
-        proj = self._find_project_model(project)
-        for t in proj.tasks:
+        proj_model = self._find_project_model(project)
+        for t in proj_model.tasks:
             if t.detail.title == task.detail.title:
                 return t
-        raise ValueError("Task model not found.")
+        raise ValueError(f"Task model '{task.detail.title}' not found in project '{project.detail.title}'")

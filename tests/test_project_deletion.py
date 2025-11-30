@@ -29,10 +29,10 @@ def manager():
 def project_with_tasks(manager):
     detail = Detail(title="Project1", description="Desc1")
     manager.add_entity(detail=detail)
-    project = manager.get_entities()[0]
+    project = manager.get_repo_list()[0]
 
     task_manager = manager.get_task_manager()
-    task_manager.set_current_project(project)
+    task_manager.set_parent_project(project)
 
     # ساخت یک تسک با deadline معتبر (مثلا فردا)
     deadline = date.today() + timedelta(days=1)
@@ -46,7 +46,7 @@ def project_with_tasks(manager):
 def project_without_tasks(manager):
     detail = Detail(title="Project2", description="Desc2")
     manager.add_entity(detail=detail)
-    project = manager.get_entities()[0]
+    project = manager.get_repo_list()[0]
     return project
 
 
@@ -56,8 +56,8 @@ def test_delete_project_cascade(manager, project_with_tasks):
     task_manager = manager.get_task_manager()
 
     # Ensure project and task exist
-    assert project_with_tasks in manager.get_entities()
-    assert project_with_tasks.tasks[0] in task_manager.get_entities()
+    assert project_with_tasks in manager.get_repo_list()
+    assert project_with_tasks.tasks[0] in task_manager.get_repo_list()
 
     menu = ProjectModifyMenu(gateway=gateway, project=project_with_tasks)
 
@@ -67,10 +67,10 @@ def test_delete_project_cascade(manager, project_with_tasks):
         mock_print.assert_any_call(f"✅{project_with_tasks.detail.title} Deleted successfully.")
 
     # Project should no longer exist
-    assert project_with_tasks not in manager.get_entities()
+    assert project_with_tasks not in manager.get_repo_list()
     # Tasks should be removed from TaskManager
     for task in project_with_tasks.tasks:
-        assert task not in task_manager.get_entities()
+        assert task not in task_manager.get_repo_list()
 
 
 def test_delete_project_without_tasks(manager, project_without_tasks):
@@ -82,4 +82,4 @@ def test_delete_project_without_tasks(manager, project_without_tasks):
         menu.delete_entity()
         mock_print.assert_any_call(f"✅{project_without_tasks.detail.title} Deleted successfully.")
 
-    assert project_without_tasks not in manager.get_entities()
+    assert project_without_tasks not in manager.get_repo_list()

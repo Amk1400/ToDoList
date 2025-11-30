@@ -1,22 +1,22 @@
 import os
+from typing import Any
 from dotenv import load_dotenv
 from core.config import AppConfig
 from db.db_inmemory import InMemoryDatabase
 from db.db_postgres import PostgresDatabase
 from service.project_manager import ProjectManager
-from cli.menus.main_menu import MainMenu
 from cli.gateway.project_gateway import ProjectGateway
-from typing import Any
+from cli.menus.main_menu import MainMenu
 
 
 class ApplicationInitializer:
-    """Initializes application components."""
+    """Application initializer."""
 
     def __init__(self) -> None:
         self._config: AppConfig | None = None
 
     def load_config(self) -> AppConfig:
-        """Load configuration from environment variables."""
+        """Load configuration from environment."""
         load_dotenv()
         self._config = AppConfig(
             max_projects=int(os.getenv("MAX_NUMBER_OF_PROJECT", "10")),
@@ -30,44 +30,46 @@ class ApplicationInitializer:
             db_user=os.getenv("DB_USER", ""),
             db_password=os.getenv("DB_PASSWORD", ""),
             db_host=os.getenv("DB_HOST", ""),
-            db_port=int(os.getenv("DB_PORT", "0")),
+            db_port=int(os.getenv("DB_PORT", "5432")),
         )
         return self._config
 
     def create_database(self, config: AppConfig) -> Any:
-        """Create database instance based on configuration."""
+        """Create database instance."""
         if config.db_type.lower() == "postgres":
-            return PostgresDatabase(
-                db_name=config.db_name,
-                user=config.db_user,
-                password=config.db_password,
-                host=config.db_host,
-                port=config.db_port,
+            url = (
+                f"postgresql://{config.db_user}:{config.db_password}"
+                f"@{config.db_host}:{config.db_port}/{config.db_name}"
             )
+            return PostgresDatabase(url)
         return InMemoryDatabase()
 
-    def create_project_manager(self, config: AppConfig, db: Any) -> ProjectManager:
-        """Create project manager instance."""
-        return ProjectManager(config, db)
+    def create_manager(self, config: AppConfig, db: Any) -> ProjectManager:
+        """Create project manager."""
+        return ProjectManager(config=config,db=db)
 
-    def create_gateway(self, manager: ProjectManager, config: AppConfig, db: Any) -> ProjectGateway:
+    def create_gateway(
+        self,
+        manager: ProjectManager,
+        config: AppConfig,
+        db: Any
+    ) -> ProjectGateway:
         """Create project gateway."""
-        return ProjectGateway(manager, config, db)
+        return ProjectGateway(manager=manager, config=config, db=db)
 
     def create_main_menu(self, gateway: ProjectGateway) -> MainMenu:
-        """Create main menu instance."""
-        return MainMenu(gateway)
+        """Create main menu."""
+        return MainMenu(project_gateway=gateway)
 
 
 def main() -> None:
-    """Run the ToDoList application."""
+    """Run application."""
     initializer = ApplicationInitializer()
     config = initializer.load_config()
     db = initializer.create_database(config)
-    project_manager = initializer.create_project_manager(config, db)
-    gateway = initializer.create_gateway(project_manager, config, db)
+    manager = initializer.create_manager(config, db)
+    gateway = initializer.create_gateway(manager, config, db)
     menu = initializer.create_main_menu(gateway)
-
     menu.run()
 
 

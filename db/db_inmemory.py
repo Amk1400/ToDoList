@@ -3,44 +3,49 @@ from datetime import date
 from models.models import Project, Task, Detail
 from db.db_interface import DatabaseInterface
 
-T = TypeVar("T")
+T = TypeVar("T", Project, Task)
 
 
 class InMemoryDatabase(DatabaseInterface[T]):
     """In-memory database implementation with CRUD operations."""
 
     def __init__(self) -> None:
-        self.projects: List[Project] = []
+        self._projects: List[Project] = []
         self._initialize_demo_data()
 
-    # ---------- Project Methods ----------
+    # ---------- Unified Add/Remove Methods ----------
+
+    def add_entity(self, entity: T, parent: Optional[Project] = None) -> None:
+        if parent is None:  # Project
+            self._projects.append(entity)  # No duplicates check here
+        else:  # Task
+            proj = self._find_project(parent)
+            if any(t.detail.title == entity.detail.title for t in proj.tasks):
+                raise ValueError(f"Task '{entity.detail.title}' already exists in project '{proj.detail.title}'.")
+            proj.tasks.append(entity)
+
+    def remove_entity(self, entity: T, parent: Optional[Project] = None) -> None:
+        if parent is None:
+            proj = self._find_project(entity)
+            self._projects.remove(proj)
+        else:
+            proj = self._find_project(parent)
+            task_obj = self._find_task(proj, entity)
+            proj.tasks.remove(task_obj)
+
+    # ---------- Interface Wrappers ----------
 
     def add_project(self, project: Project) -> None:
-        self.projects.append(project)
-
-    def remove_project(self, project: Project) -> None:
-        proj = self._find_project(project)
-        self.projects.remove(proj)
-
-    def get_projects(self) -> List[Project]:
-        return self.projects
-
-    # ---------- Task Methods ----------
+        self.add_entity(project)
 
     def add_task(self, project: Project, task: Task) -> None:
-        proj = self._find_project(project)
-        if any(t.detail.title == task.detail.title for t in proj.tasks):
-            raise ValueError(f"Task '{task.detail.title}' already exists in project '{proj.detail.title}'.")
-        proj.tasks.append(task)
+        self.add_entity(task, parent=project)
+
+    def remove_project(self, project: Project) -> None:
+        self.remove_entity(project)
 
     def remove_task(self, project: Project, task: Task) -> None:
-        proj = self._find_project(project)
-        task_obj = self._find_task(proj, task)
-        proj.tasks.remove(task_obj)
-
-    def get_tasks(self, project: Project) -> List[Task]:
-        proj = self._find_project(project)
-        return proj.tasks
+        self.remove_entity(task, parent=project)
 
     # ---------- Update Method ----------
 
@@ -59,10 +64,19 @@ class InMemoryDatabase(DatabaseInterface[T]):
         else:
             raise TypeError("Entity type mismatch.")
 
+    # ---------- Get Methods ----------
+
+    def get_projects(self) -> List[Project]:
+        return self._projects
+
+    def get_tasks(self, project: Project) -> List[Task]:
+        proj = self._find_project(project)
+        return proj.tasks
+
     # ---------- Helper Methods ----------
 
     def _find_project(self, project: Project) -> Project:
-        for p in self.projects:
+        for p in self._projects:
             if p.detail.title == project.detail.title:
                 return p
         raise ValueError(f"Project '{project.detail.title}' not found.")
@@ -89,4 +103,4 @@ class InMemoryDatabase(DatabaseInterface[T]):
                 Task(detail=Detail("Task B2", "Second task of B"), deadline=date(2025, 3, 20), status="todo"),
             ],
         )
-        self.projects = [project1, project2]
+        self._projects = [project1, project2]

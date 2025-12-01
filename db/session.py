@@ -1,7 +1,5 @@
-import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from urllib.parse import urlparse
 
 class DBSession:
     """Database session manager with auto-create for missing PostgreSQL databases."""
@@ -22,23 +20,38 @@ class DBSession:
 
     def _ensure_database_exists(self) -> None:
         """Check if target database exists, create it if missing."""
-        from urllib.parse import urlparse
-        import psycopg2
-
-        parsed = urlparse(self.url)
-        dbname = parsed.path.lstrip("/")
-        admin_url = self.url.replace(f"/{dbname}", "/postgres")  # connect to default db
-
+        admin_url, dbname = self._init_admin_url()
         try:
-            conn = psycopg2.connect(admin_url)
-            conn.autocommit = True  # بسیار مهم برای CREATE DATABASE
-            cur = conn.cursor()
-            cur.execute("SELECT 1 FROM pg_database WHERE datname = %s;", (dbname,))
-            exists = cur.fetchone()
-            if not exists:
-                cur.execute(f'CREATE DATABASE "{dbname}"')
-            cur.close()
-            conn.close()
+            conn, cur = self._init_connection(admin_url)
+            exists = self._fetch_first_row(cur, dbname)
+            self._create_if_not_exist(cur, dbname, exists)
+            self._close_connection(conn, cur)
         except Exception as e:
             raise RuntimeError(f"Failed to ensure database '{dbname}' exists.") from e
 
+    def _close_connection(self, conn, cur):
+        cur.close()
+        conn.close()
+
+    def _init_connection(self, admin_url):
+        import psycopg2
+        conn = psycopg2.connect(admin_url)
+        conn.autocommit = True  # بسیار مهم برای CREATE DATABASE
+        cur = conn.cursor()
+        return conn, cur
+
+    def _fetch_first_row(self, cur, dbname):
+        cur.execute("SELECT 1 FROM pg_database WHERE datname = %s;", (dbname,))
+        exists = cur.fetchone()
+        return exists
+
+    def _init_admin_url(self):
+        from urllib.parse import urlparse
+        parsed = urlparse(self.url)
+        dbname = parsed.path.lstrip("/")
+        admin_url = self.url.replace(f"/{dbname}", "/postgres")
+        return admin_url, dbname
+
+    def _create_if_not_exist(self, cur, dbname, exists):
+        if not exists:
+            cur.execute(f'CREATE DATABASE "{dbname}"')

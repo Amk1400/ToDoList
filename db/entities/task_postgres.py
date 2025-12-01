@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import List, Optional, Type
 from sqlalchemy.orm import Session
-from models.models import Task, Detail, Project
+from models.models import Task, Detail
 from db.entities.entity_postgres import EntityPostgres
 from db.orm_models import TaskORM, ProjectORM
 
@@ -8,59 +8,39 @@ from db.orm_models import TaskORM, ProjectORM
 class TaskPostgres(EntityPostgres[Task]):
     """Task entity operations for PostgreSQL."""
 
-    def add_entity(self, entity: Task, container: List[Task], session: Session,
-                   parent: Optional[Project] = None) -> None:
-        proj_orm = session.query(ProjectORM).filter_by(title=parent.detail.title).one()
-        task_orm = TaskORM(
-            project_id=proj_orm.id,
-            title=entity.detail.title,
-            description=entity.detail.description,
-            deadline=entity.deadline,
-            status=entity.status,
-        )
-        session.add(task_orm)
-        session.commit()
-        container.append(entity)
+    def _create_ORM_object(self, entity, proj_orm):
+        return TaskORM(
+            project_id=proj_orm.id,title=entity.detail.title,
+            description=entity.detail.description,deadline=entity.deadline,status=entity.status)
 
-    def remove_entity(self, entity: Task, container: List[Task], session: Session,
-                      parent: Optional[Project] = None) -> None:
-        proj_orm = session.query(ProjectORM).filter_by(title=parent.detail.title).one()
-        task_orm = session.query(TaskORM).filter_by(project_id=proj_orm.id, title=entity.detail.title).one_or_none()
-        if task_orm:
-            session.delete(task_orm)
-            session.commit()
-            container.remove(entity)
-
-    def update_entity(self, old_entity: Task, new_entity: Task, container: List[Task], session: Session,
-                      parent: Optional[Project] = None) -> None:
-        """Update task in DB and container."""
-        if parent is None:
-            raise ValueError("Parent project must be provided for task update.")
-        proj_orm = session.query(ProjectORM).filter_by(title=parent.detail.title).one()
-        task_orm = session.query(TaskORM).filter_by(project_id=proj_orm.id, title=old_entity.detail.title).one_or_none()
-        if not task_orm:
-            raise ValueError(f"Task '{old_entity.detail.title}' not found in project '{parent.detail.title}'")
-
-        task_orm.title = new_entity.detail.title
-        task_orm.description = new_entity.detail.description
+    def _apply_deadline_and_task_update(self, new_entity, task_orm):
         task_orm.deadline = new_entity.deadline
         task_orm.status = new_entity.status
-        session.commit()
 
-        # Update in-memory container
-        for i, t in enumerate(container):
-            if t.detail.title == old_entity.detail.title:
-                container[i] = new_entity
-                break
+    def _fetch_parent_proj_orm(self, parent, session):
+        if parent is None:
+            raise ValueError("Parent project must be provided for task.")
+        proj_orm = session.query(ProjectORM).filter_by(title=parent.detail.title).one()
+        return proj_orm
 
-    def load_all(self, session: Session, parent: Optional[ProjectORM] = None) -> List[Task]:
+    def _fetch_orm(self, entity, session, parent_entity, parent_orm):
+        task_orm = session.query(TaskORM).filter_by(project_id=parent_orm.id, title=entity.detail.title).one_or_none()
+        if not task_orm:
+            raise ValueError(f"Task '{entity.detail.title}' not found in project '{parent_entity.detail.title}'")
+        return task_orm
+
+    def load_all(self, session: Session, parent: Optional[Type[ProjectORM]] = None) -> List[Task]:
         tasks: List[Task] = []
         if parent is None:
             return tasks
-        for task_orm in session.query(TaskORM).filter_by(project_id=parent.id).all():
-            tasks.append(Task(
-                detail=Detail(task_orm.title, task_orm.description),
-                deadline=task_orm.deadline,
-                status=task_orm.status
-            ))
+
+        query = session.query(TaskORM).filter_by(project_id=parent.id)
+        task_list = query.order_by(TaskORM.id.asc()).all()
+
+        for orm_obj in task_list:
+            detail = Detail(orm_obj.title, orm_obj.description)
+            task = Task(detail=detail, deadline=orm_obj.deadline, status=orm_obj.status)
+            task._id = orm_obj.id
+            tasks.append(task)
+
         return tasks

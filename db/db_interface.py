@@ -7,6 +7,10 @@ T = TypeVar("T", Project, Task)
 
 
 class DatabaseInterface(ABC, Generic[T]):
+
+    def __init__(self):
+        self._projects: List[Project] = []
+
     @abstractmethod
     def add_project(self, project: Project) -> None:
         raise NotImplementedError
@@ -24,7 +28,7 @@ class DatabaseInterface(ABC, Generic[T]):
         raise NotImplementedError
 
     @abstractmethod
-    def update_entity(self, parent_project: Optional[Project], old_entity: T, new_entity: T) -> None:
+    def update_entity(self, old_entity: T, new_entity: T, parent_project: Optional[Project]) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -33,4 +37,8 @@ class DatabaseInterface(ABC, Generic[T]):
 
     @abstractmethod
     def get_tasks(self, project: Project) -> List[Task]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _load(self) -> None:
         raise NotImplementedError

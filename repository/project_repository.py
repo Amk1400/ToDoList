@@ -19,4 +19,4 @@ class ProjectRepository(EntityRepository[Project]):
 
     def update_entity(self, parent_project: Optional[Project], old_entity: Project, new_entity: Project) -> None:
         """Update a project in the database."""
-        self._db.update_entity(None, old_entity, new_entity)
+        self._db.update_entity(old_entity, new_entity, None)

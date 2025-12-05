@@ -12,11 +12,10 @@ class PostgresDatabase(DatabaseInterface[T], Generic[T]):
     """PostgreSQL database wrapper."""
 
     def __init__(self, url: str):
-        self._db_session = DBSession(url)
-        self._projects: List[Project] = []
+        super().__init__()
         self._project_entity = ProjectPostgres()
         self._task_entity = TaskPostgres()
-
+        self._db_session = DBSession(url)
         from db.orm_models import Base
         Base.metadata.create_all(self._db_session.engine)
 
@@ -40,19 +39,14 @@ class PostgresDatabase(DatabaseInterface[T], Generic[T]):
         with self._db_session.get_session() as session:
             self._task_entity.remove_entity(task, proj_model.tasks, session, parent=parent_project)
 
-    def update_entity(self, parent_project: Optional[Project], old_entity: T, new_entity: T) -> None:
+    def update_entity(self, old_entity: T, new_entity: T, parent_project: Optional[Project]) -> None:
         with self._db_session.get_session() as session:
             if parent_project is None:
                 self._project_entity.update_entity(old_entity, new_entity, self._projects,session)
             else:
                 proj_model = self._find_project_model(parent_project)
-                self._task_entity.update_entity(
-                    old_entity,
-                    new_entity,
-                    proj_model.tasks,
-                    session,
-                    parent=parent_project
-                )
+                self._task_entity.update_entity(old_entity, new_entity, proj_model.tasks,
+                                                session, parent=parent_project)
 
     def get_projects(self) -> List[Project]:
         return self._projects

@@ -6,12 +6,19 @@ from db.db_interface import DatabaseInterface
 T = TypeVar("T", Project, Task)
 
 
+def _find_task(project: Project, task: Task) -> Task:
+    for t in project.tasks:
+        if t.detail.title == task.detail.title:
+            return t
+    raise ValueError(f"Task '{task.detail.title}' not found in project '{project.detail.title}'.")
+
+
 class InMemoryDatabase(DatabaseInterface[T]):
     """In-memory database implementation with CRUD operations."""
 
     def __init__(self) -> None:
-        self._projects: List[Project] = []
-        self._initialize_demo_data()
+        super().__init__()
+        self._load()
 
     # ---------- Unified Add/Remove Methods ----------
 
@@ -30,7 +37,7 @@ class InMemoryDatabase(DatabaseInterface[T]):
             self._projects.remove(proj)
         else:
             proj = self._find_project(parent)
-            task_obj = self._find_task(proj, entity)
+            task_obj = _find_task(proj, entity)
             proj.tasks.remove(task_obj)
 
     # ---------- Interface Wrappers ----------
@@ -49,7 +56,7 @@ class InMemoryDatabase(DatabaseInterface[T]):
 
     # ---------- Update Method ----------
 
-    def update_entity(self, parent_project: Optional[Project], old_entity: T, new_entity: T) -> None:
+    def update_entity(self, old_entity: T, new_entity: T, parent_project: Optional[Project]) -> None:
         if isinstance(old_entity, Project) and isinstance(new_entity, Project):
             proj_obj = self._find_project(old_entity)
             proj_obj.detail = new_entity.detail
@@ -57,7 +64,7 @@ class InMemoryDatabase(DatabaseInterface[T]):
             if parent_project is None:
                 raise ValueError("Parent project must be provided for tasks.")
             proj = self._find_project(parent_project)
-            task_obj = self._find_task(proj, old_entity)
+            task_obj = _find_task(proj, old_entity)
             task_obj.detail = new_entity.detail
             task_obj.deadline = new_entity.deadline
             task_obj.status = new_entity.status or task_obj.status
@@ -81,15 +88,9 @@ class InMemoryDatabase(DatabaseInterface[T]):
                 return p
         raise ValueError(f"Project '{project.detail.title}' not found.")
 
-    def _find_task(self, project: Project, task: Task) -> Task:
-        for t in project.tasks:
-            if t.detail.title == task.detail.title:
-                return t
-        raise ValueError(f"Task '{task.detail.title}' not found in project '{project.detail.title}'.")
-
     # ---------- Demo Data ----------
 
-    def _initialize_demo_data(self) -> None:
+    def _load(self) -> None:
         project1 = Project(
             detail=Detail("Project A", "Demo project A"),
             tasks=[

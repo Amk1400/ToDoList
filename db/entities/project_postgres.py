@@ -2,12 +2,12 @@ from typing import List
 from sqlalchemy.orm import Session
 from db.entities.entity_postgres import EntityPostgres
 from db.orm_models import ProjectORM
-from models.models import Project, Detail, Task
+from models.models import Project, Detail
 
 
 class ProjectPostgres(EntityPostgres[Project]):
 
-    def _create_ORM_object(self, entity, proj_orm):
+    def _create_orm_object(self, entity, proj_orm):
         return ProjectORM(title=entity.detail.title, description=entity.detail.description)
 
     def _apply_deadline_and_task_update(self, new_entity, task_orm):

@@ -8,7 +8,7 @@ from db.orm_models import TaskORM, ProjectORM
 class TaskPostgres(EntityPostgres[Task]):
     """Task entity operations for PostgreSQL."""
 
-    def _create_ORM_object(self, entity, proj_orm):
+    def _create_orm_object(self, entity, proj_orm):
         return TaskORM(
             project_id=proj_orm.id,title=entity.detail.title,
             description=entity.detail.description,deadline=entity.deadline,status=entity.status)

@@ -8,7 +8,7 @@ from models.models import Project, Task
 T = TypeVar("T", Project, Task)
 
 
-class PostgresDatabase(DatabaseInterface[T], Generic[T]):
+class PostgresDatabase(DatabaseInterface[T]):
     """PostgreSQL database wrapper."""
 
     def __init__(self, url: str):

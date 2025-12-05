@@ -27,4 +27,4 @@ class TaskRepository(EntityRepository[Task]):
         """Update a task in a project."""
         if parent_project is None:
             raise ValueError("Parent project must be provided for tasks.")
-        self._db.update_entity(parent_project, old_entity, new_entity)
+        self._db.update_entity(old_entity, new_entity, parent_project)

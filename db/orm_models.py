@@ -1,25 +1,24 @@
-from sqlalchemy import Column, Integer, String, Text, Date, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 
 Base = declarative_base()
 
-class ProjectORM(Base):
-    __tablename__ = "project"
+class EntityORM(Base):
+    """Abstract base for common ORM fields."""
+    __abstract__ = True
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String, unique=True, nullable=False)
+    description = Column(String, nullable=False)
 
-    id = Column(Integer, primary_key=True)
-    title = Column(String(100), unique=True, nullable=False)
-    description = Column(Text, nullable=False)
 
+class ProjectORM(EntityORM):
+    __tablename__ = "projects"
     tasks = relationship("TaskORM", back_populates="project", cascade="all, delete-orphan")
 
-class TaskORM(Base):
-    __tablename__ = "task"
 
-    id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
-    title = Column(String(100), unique=True, nullable=False)
-    description = Column(Text, nullable=False)
-    deadline = Column(Date, nullable=True)
+class TaskORM(EntityORM):
+    __tablename__ = "tasks"
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    deadline = Column(DateTime, nullable=True)
     status = Column(String(20), nullable=True)
-
     project = relationship("ProjectORM", back_populates="tasks")

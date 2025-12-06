@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from core.config import AppConfig
 from db.db_inmemory import InMemoryDatabase
 from db.db_postgres import PostgresDatabase
+from db.session import DBSession
 from service.project_manager import ProjectManager
 from cli.gateway.project_gateway import ProjectGateway
 from cli.menus.main_menu import MainMenu
@@ -16,7 +17,6 @@ class ApplicationInitializer:
         self._config: AppConfig | None = None
 
     def load_config(self) -> AppConfig:
-        """Load configuration from environment."""
         load_dotenv()
         self._config = AppConfig(
             max_projects=int(os.getenv("MAX_NUMBER_OF_PROJECT", "10")),
@@ -34,19 +34,17 @@ class ApplicationInitializer:
         )
         return self._config
 
-    def create_database(self, config: AppConfig) -> Any:
-        """Create database instance."""
+    def create_database(self, config: AppConfig, use_alembic: bool = False) -> Any:
         if config.db_type.lower() == "postgres":
             url = (
                 f"postgresql://{config.db_user}:{config.db_password}"
                 f"@{config.db_host}:{config.db_port}/{config.db_name}"
             )
-            return PostgresDatabase(url)
+            return PostgresDatabase(url, use_alembic=use_alembic)
         return InMemoryDatabase()
 
     def create_manager(self, config: AppConfig, db: Any) -> ProjectManager:
-        """Create project manager."""
-        return ProjectManager(config=config,db=db)
+        return ProjectManager(config=config, db=db)
 
     def create_gateway(
         self,
@@ -54,19 +52,19 @@ class ApplicationInitializer:
         config: AppConfig,
         db: Any
     ) -> ProjectGateway:
-        """Create project gateway."""
         return ProjectGateway(manager=manager, config=config, db=db)
 
     def create_main_menu(self, gateway: ProjectGateway) -> MainMenu:
-        """Create main menu."""
         return MainMenu(project_gateway=gateway)
 
 
 def main() -> None:
     """Run application."""
+    use_alembic = True
+
     initializer = ApplicationInitializer()
     config = initializer.load_config()
-    db = initializer.create_database(config)
+    db = initializer.create_database(config, use_alembic=use_alembic)
     manager = initializer.create_manager(config, db)
     gateway = initializer.create_gateway(manager, config, db)
     menu = initializer.create_main_menu(gateway)

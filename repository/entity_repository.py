@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from datetime import date
 from typing import Generic, TypeVar, List
-from db.db_inmemory import InMemoryDatabase
-from models.models import Project, Detail
+from db.db_interface import DatabaseInterface
+from models.models import Project
 
 T = TypeVar("T")
 
@@ -10,8 +9,8 @@ T = TypeVar("T")
 class EntityRepository(ABC, Generic[T]):
     """Abstract repository for generic entity operations."""
 
-    def __init__(self, db: InMemoryDatabase) -> None:
-        self._db: InMemoryDatabase = db
+    def __init__(self, db: DatabaseInterface[T]) -> None:
+        self._db: DatabaseInterface[T] = db
 
     @abstractmethod
     def get_db_list(self, project: object | None = None) -> List[T]:

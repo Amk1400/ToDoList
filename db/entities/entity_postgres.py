@@ -21,7 +21,7 @@ def _apply_postgres_remove(container: List[T], entity:T ,
 
 
 def _update_in_memory_container(container: List[T], new_entity: T, old_entity: T) -> None:
-    if old_entity.tasks:
+    if hasattr(old_entity, "tasks"):
         new_entity.tasks = old_entity.tasks
     for index, item in enumerate(container):
         if item.detail.title == old_entity.detail.title:

@@ -21,4 +21,5 @@ class TaskORM(EntityORM):
     project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     deadline = Column(DateTime, nullable=True)
     status = Column(String(20), nullable=True)
+    closed_at = Column(DateTime, nullable=True)
     project = relationship("ProjectORM", back_populates="tasks")

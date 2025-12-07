@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Optional, List
+from typing import TypeVar, Optional, List
 from db.db_interface import DatabaseInterface
 from db.entities.project_postgres import ProjectPostgres
 from db.entities.task_postgres import TaskPostgres
@@ -11,13 +11,15 @@ T = TypeVar("T", Project, Task)
 class PostgresDatabase(DatabaseInterface[T]):
     """PostgreSQL database wrapper."""
 
-    def __init__(self, url: str):
+    def __init__(self, url: str, use_alembic: bool = False):
         super().__init__()
         self._project_entity = ProjectPostgres()
         self._task_entity = TaskPostgres()
-        self._db_session = DBSession(url)
-        from db.orm_models import Base
-        Base.metadata.create_all(self._db_session.engine)
+        self._db_session = DBSession(url, use_alembic=use_alembic)
+
+        if not use_alembic:
+            from db.orm_models import Base
+            Base.metadata.create_all(self._db_session.engine)
 
         self._load()
 

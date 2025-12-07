@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Amk1400
+      POSTGRES_DB: ToDoList
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - your_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  your_network:
+    driver: bridge

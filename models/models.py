@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import date
-from typing import List, Callable
+from typing import List, Callable, Optional
 
 
 @dataclass
@@ -21,9 +21,12 @@ class Task(Entity):
     """Project task item."""
     deadline: date
     status: str = "todo"
+    closed_at: Optional[date] = None
 
     def __str__(self) -> str:
-        return f"{self.detail.title} ({self.detail.description}) - {self.status}, {self.deadline}"
+        closed_at = f" -> (closed at): {self.closed_at}" if self.closed_at is not None else ""
+        other = f"{self.detail.title} ({self.detail.description}) - {self.status}, {self.deadline}"
+        return other + closed_at
 
 
 @dataclass

@@ -10,12 +10,15 @@ class TaskPostgres(EntityPostgres[Task]):
 
     def _create_orm_object(self, entity: Task, parent_proj_orm: ProjectORM) -> TaskORM:
         return TaskORM(
-            project_id=parent_proj_orm.id,title=entity.detail.title,
-            description=entity.detail.description,deadline=entity.deadline,status=entity.status)
+            project_id=parent_proj_orm.id,
+            title=entity.detail.title,description=entity.detail.description,
+            deadline=entity.deadline, status=entity.status, closed_at=entity.closed_at)
 
     def _apply_deadline_and_task_update(self, new_entity: Task, old_entity_orm: Type[TaskORM]) -> None:
         old_entity_orm.deadline = new_entity.deadline
         old_entity_orm.status = new_entity.status
+        if new_entity.closed_at is not None:
+            old_entity_orm.closed_at = new_entity.closed_at
 
     def _fetch_parent_proj_orm(self, parent: Project, session: Session) -> Type[ProjectORM]:
         if parent is None:
@@ -41,7 +44,8 @@ class TaskPostgres(EntityPostgres[Task]):
 
         for orm_obj in task_list:
             detail = Detail(orm_obj.title, orm_obj.description)
-            task = Task(detail=detail, deadline=orm_obj.deadline, status=orm_obj.status)
+            task = Task(detail=detail, deadline=orm_obj.deadline,
+                        status=orm_obj.status, closed_at=orm_obj.closed_at)
             task._id = orm_obj.id
             tasks.append(task)
 

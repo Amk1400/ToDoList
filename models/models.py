@@ -24,7 +24,7 @@ class Task(Entity):
     closed_at: Optional[date] = None
 
     def __str__(self) -> str:
-        closed_at = f" -> (closed at): {self.closed_at.day}" if self.closed_at is not None else ""
+        closed_at = f" -> (closed at): {self.closed_at}" if self.closed_at is not None else ""
         other = f"{self.detail.title} ({self.detail.description}) - {self.status}, {self.deadline}"
         return other + closed_at
 

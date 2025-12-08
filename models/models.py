@@ -14,6 +14,7 @@ class Detail:
 class Entity:
     """Abstract base for all entities."""
     detail: Detail
+    _id: int = field(default=None, init=False)
 
 
 @dataclass

@@ -1,5 +1,5 @@
 from typing import Dict
-from cli.gateway.entity_gateway import EntityGateway
+from api_cli.gateway.entity_gateway import EntityGateway
 from models.models import Project
 from service.task_manager import TaskManager
 

@@ -1,8 +1,8 @@
 from typing import Dict
-from cli.fetcher import CliFetcher
+from api_cli.cli.fetcher import CliFetcher
+from api_cli.gateway.entity_gateway import EntityGateway
 from models.models import Task, Project
 from service.task_manager import TaskManager
-from cli.gateway.entity_gateway import EntityGateway
 
 
 class TaskGateway(EntityGateway[Task]):

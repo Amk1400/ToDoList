@@ -22,7 +22,7 @@ class TaskManager(EntityManager[Task]):
     def entity_name(self) -> str:
         return "Task"
 
-    def _create_entity_object(
+    def create_entity_object(
         self, detail: Detail, deadline: Optional[date] = None, status: Optional[str] = "todo"
     ) -> Task:
         if status is None:
@@ -72,3 +72,6 @@ class TaskManager(EntityManager[Task]):
         if parent_project is None:
             raise ValueError("Parent project must be provided for tasks.")
         self._repository.remove_from_db(entity, parent_project)
+
+    def get_parent_project(self) -> Project:
+        return self._parent_project

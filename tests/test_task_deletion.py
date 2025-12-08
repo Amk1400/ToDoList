@@ -4,8 +4,8 @@ import pytest
 from unittest.mock import patch
 from models.models import Detail, Project
 from service.task_manager import TaskManager
-from cli.gateway.task_gateway import TaskGateway
-from cli.menus.entity.modify.task_modify import TaskModifyMenu
+from api_cli.gateway.task_gateway import TaskGateway
+from api_cli.cli.menus.entity.modify.task_modify import TaskModifyMenu
 
 
 @pytest.fixture

@@ -1,8 +1,8 @@
 from typing import Optional
-from api_cli.cli.menus.base_menu import BaseMenu
-from api_cli.gateway.task_gateway import TaskGateway
-from api_cli.cli.menus.entity.modify.task_modify import TaskModifyMenu
-from api_cli.cli.menus.entity.show.entity_show import EntityShowMenu
+from cli.menus.base_menu import BaseMenu
+from cli.gateway.task_gateway import TaskGateway
+from cli.menus.entity.modify.task_modify import TaskModifyMenu
+from cli.menus.entity.show.entity_show import EntityShowMenu
 from models.models import Project, Task
 
 

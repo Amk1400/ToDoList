@@ -1,9 +1,9 @@
 from typing import Optional
-from api_cli.cli.menus.base_menu import BaseMenu
-from api_cli.gateway import ProjectGateway
-from api_cli.gateway.task_gateway import TaskGateway
-from api_cli.cli.menus.entity.management.task_management import TaskManagementMenu
-from api_cli.cli.menus.entity.modify.entity_modify import EntityModifyMenu
+from cli.menus.base_menu import BaseMenu
+from cli.gateway.project_gateway import ProjectGateway
+from cli.gateway.task_gateway import TaskGateway
+from cli.menus.entity.management.task_management import TaskManagementMenu
+from cli.menus.entity.modify.entity_modify import EntityModifyMenu
 from models.models import Project, Option
 
 

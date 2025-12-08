@@ -1,7 +1,7 @@
-from api_cli.cli.menus.base_menu import BaseMenu
+from cli.menus.base_menu import BaseMenu
 from models.models import Option
-from api_cli.cli.menus.entity.management.project_management import ProjectManagementMenu
-from api_cli.gateway import ProjectGateway
+from cli.menus.entity.management.project_management import ProjectManagementMenu
+from cli.gateway.project_gateway import ProjectGateway
 
 
 class MainMenu(BaseMenu):

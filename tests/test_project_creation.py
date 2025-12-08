@@ -54,7 +54,7 @@ def test_create_project_with_invalid_title_length(manager):
 def test_create_project_with_duplicate_title(manager):
     """Duplicate title triggers DuplicateValueError."""
     existing_detail = Detail(title="DuplicateTitle", description="Desc")
-    manager._entity_list.append(manager.create_entity_object(detail=existing_detail))
+    manager._entity_list.append(manager._create_entity_object(detail=existing_detail))
 
     with pytest.raises(DuplicateValueError):
         manager.validate_title("DuplicateTitle")

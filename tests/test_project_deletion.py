@@ -4,10 +4,10 @@ from datetime import timedelta, date
 import pytest
 from unittest.mock import patch
 
-from api_cli.cli.menus.entity.modify.project_modify import ProjectModifyMenu
+from cli.menus.entity.modify.project_modify import ProjectModifyMenu
 from models.models import Detail
 from service.project_manager import ProjectManager
-from api_cli.gateway import ProjectGateway
+from cli.gateway.project_gateway import ProjectGateway
 
 
 @pytest.fixture

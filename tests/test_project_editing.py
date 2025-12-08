@@ -22,8 +22,8 @@ def manager():
 @pytest.fixture
 def existing_projects(manager):
     """Add two projects to manager for testing edit."""
-    project1 = manager.create_entity_object(Detail(title="Project1", description="Desc1"))
-    project2 = manager.create_entity_object(Detail(title="Project2", description="Desc2"))
+    project1 = manager._create_entity_object(Detail(title="Project1", description="Desc1"))
+    project2 = manager._create_entity_object(Detail(title="Project2", description="Desc2"))
     manager._entity_list.extend([project1, project2])
     return manager._entity_list
 

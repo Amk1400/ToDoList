@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 from pydantic import BaseModel, Field
+
 from api_cli.api.schemas.detail_schema import DetailSchema
 from models.models import Status
 

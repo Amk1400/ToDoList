@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import date
 from typing import TypeVar, Generic, List, Optional
+
 from core.config import AppConfig
 from models.models import Detail, Project
 from repository.entity_repository import EntityRepository

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException
-from typing import Any
 
 from api_cli.api.schemas.requests.project_request_schema import ProjectCreate
 from api_cli.api.schemas.responses.project_response_schema import ProjectResponse

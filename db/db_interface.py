@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import List, TypeVar, Generic, Optional
+
 from models.models import Project, Task
 
 T = TypeVar("T", Project, Task)

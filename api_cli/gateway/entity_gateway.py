@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Generic, TypeVar, Optional
+
 from api_cli.cli.fetcher import CliFetcher
 from models.models import Entity, Detail
 

@@ -1,4 +1,5 @@
 from typing import TypeVar, Optional, List
+
 from db.db_interface import DatabaseInterface
 from db.entities.project_postgres import ProjectPostgres
 from db.entities.task_postgres import TaskPostgres

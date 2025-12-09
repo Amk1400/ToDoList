@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Callable, List
+
 from api_cli.cli.fetcher import CliFetcher
 from models.models import Option
 

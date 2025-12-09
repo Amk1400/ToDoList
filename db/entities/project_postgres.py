@@ -1,5 +1,6 @@
 from typing import List, Optional, Type
 from sqlalchemy.orm import Session
+
 from db.entities.entity_postgres import EntityPostgres
 from db.orm_models import ProjectORM, TaskORM
 from models.models import Project, Detail, Task

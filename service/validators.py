@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Optional, List
+
 from models.models import Status
 from core.validator import StatusValidator, DeadlineValidator, NonEmptyTextValidator, MaxCountValidator
 

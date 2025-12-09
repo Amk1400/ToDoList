@@ -2,6 +2,7 @@ from schedule import every, run_pending
 import time
 from typing import List
 from threading import Thread
+
 from service.scheduler.task_closer import TaskCloser
 
 

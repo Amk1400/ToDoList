@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from typing import Optional, TypeVar, Generic
+
 from api_cli.cli.menus.base_menu import BaseMenu
 from api_cli.gateway.entity_gateway import EntityGateway
 from models.models import Option, Project

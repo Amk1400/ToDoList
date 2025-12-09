@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 import os
 from typing import Tuple, Any
 from dotenv import load_dotenv
+
 from core.config import AppConfig
 from db.db_inmemory import InMemoryDatabase
 from db.db_postgres import PostgresDatabase

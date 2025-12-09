@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, List
+
 from db.db_interface import DatabaseInterface
 from models.models import Project
 

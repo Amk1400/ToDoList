@@ -1,5 +1,6 @@
 from typing import List, Optional, TypeVar
 from datetime import date
+
 from models.models import Project, Task, Detail, Status
 from db.db_interface import DatabaseInterface
 

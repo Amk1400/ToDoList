@@ -1,4 +1,5 @@
 from typing import Optional
+
 from api_cli.cli.menus.base_menu import BaseMenu
 from api_cli.gateway.task_gateway import TaskGateway
 from api_cli.cli.menus.entity.modify.entity_modify import EntityModifyMenu

@@ -1,4 +1,5 @@
 from typing import List
+
 from core.config import AppConfig
 from models.models import Detail, Project
 from repository.project_repository import ProjectRepository

@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Optional, List
+
 from core.config import AppConfig
 from models.models import Detail, Task, Project, Status
 from repository.task_repository import TaskRepository

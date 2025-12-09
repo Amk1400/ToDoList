@@ -27,7 +27,7 @@ class ProjectManager(EntityManager[Project]):
     def entity_name(self) -> str:
         return "Project"
 
-    def _create_entity_object(self, detail: Detail, deadline=None, status=None) -> Project:
+    def create_entity_object(self, detail: Detail, deadline=None, status=None) -> Project:
         return Project(detail=detail)
 
     def _update_deadline_and_status_by_repo(self, deadline, entity, status):

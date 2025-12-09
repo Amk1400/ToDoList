@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Generic, TypeVar, Optional
-from cli.fetcher import CliFetcher
+from api_cli.cli.fetcher import CliFetcher
 from models.models import Entity, Detail
 
 T = TypeVar("T", bound=Entity)
@@ -26,7 +26,7 @@ class EntityGateway(ABC, Generic[T]):
         """Edit entity and push updates to the manager using new entity object."""
         detail = self._fetch_detail(old_entity.detail.title)
         optional = self._fetch_optional_edit(old_entity)
-        new_entity = self._manager._create_entity_object(
+        new_entity = self._manager.create_entity_object(
             detail,
             optional.get("deadline"),
             optional.get("status")

@@ -19,7 +19,7 @@ class EntityManager(ABC, Generic[T]):
     def add_entity(self, detail: Detail, deadline: Optional[date] = None, status: Optional[str] = None) -> None:
         """Validate and add entity."""
         self.validate_creation()
-        entity = self._create_entity_object(detail, deadline, status)
+        entity = self.create_entity_object(detail, deadline, status)
         self._append_to_repository(entity)
 
     @abstractmethod
@@ -55,7 +55,7 @@ class EntityManager(ABC, Generic[T]):
         raise NotImplementedError
 
     @abstractmethod
-    def _create_entity_object(
+    def create_entity_object(
         self, detail: Detail, deadline: Optional[date] = None, status: Optional[str] = None
     ) -> T:
         raise NotImplementedError

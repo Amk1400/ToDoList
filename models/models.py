@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import date
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Literal
 
 
 @dataclass
@@ -14,13 +14,18 @@ class Detail:
 class Entity:
     """Abstract base for all entities."""
     detail: Detail
+    _id: int = field(default=None, init=False)
+
+    @property
+    def id(self):
+        return self._id
 
 
 @dataclass
 class Task(Entity):
     """Project task item."""
     deadline: date
-    status: str = "todo"
+    status: Literal["todo", "doing", "done"] = "todo"
     closed_at: Optional[date] = None
 
     def __str__(self) -> str:

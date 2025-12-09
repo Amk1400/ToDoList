@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from uvicorn import run
 
+from api_cli.api.controllers.task_controller import TaskController
+from api_cli.cli.menus.main_menu import MainMenu
+from api_cli.gateway.project_gateway import ProjectGateway
 from core.config import AppConfig
 from db.db_inmemory import InMemoryDatabase
 from db.db_postgres import PostgresDatabase
@@ -15,7 +18,6 @@ from service.project_manager import ProjectManager
 from service.scheduler.task_closer import TaskCloser
 from service.scheduler.task_scheduler import TaskScheduler
 from api_cli.api.controllers.project_controller import ProjectController
-from api_cli.api import TaskController
 
 
 def load_config() -> AppConfig:
@@ -75,8 +77,7 @@ def _initialize() -> (AppConfig, PostgresDatabase | InMemoryDatabase, ProjectMan
 
 
 def _run_cli(config: AppConfig, db: PostgresDatabase | InMemoryDatabase, manager: ProjectManager) -> None:
-    from api_cli.gateway import ProjectGateway
-    from api_cli.cli.menus import MainMenu
+
     gateway = ProjectGateway(manager, config, db)
     menu = MainMenu(gateway)
     menu.run()

@@ -1,8 +1,8 @@
 from typing import Optional
 from api_cli.cli.menus.base_menu import BaseMenu
-from api_cli.gateway import ProjectGateway
 from api_cli.cli.menus.entity.modify.project_modify import ProjectModifyMenu
 from api_cli.cli.menus.entity.show.entity_show import EntityShowMenu
+from api_cli.gateway.project_gateway import ProjectGateway
 from models.models import Project
 
 

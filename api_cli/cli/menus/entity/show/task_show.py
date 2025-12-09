@@ -8,13 +8,32 @@ from models.models import Project, Task
 
 
 class TaskShowMenu(EntityShowMenu):
-    """Show tasks of a project and open TaskModifyMenu."""
+    """Task selection menu."""
 
-    def __init__(self, gateway: TaskGateway, project: "Project", parent_menu: Optional[BaseMenu] = None):
-        super().__init__(gateway, project, parent_menu, title=f"Select a Task of Project '{project.detail.title}' to Modify")
+    def __init__(self, gateway: TaskGateway, project: Project,
+                 parent_menu: Optional[BaseMenu] = None) -> None:
+        """Initialize task show menu.
+
+        Args:
+            gateway (TaskGateway): Task data gateway.
+            project (Project): Project containing tasks.
+            parent_menu (Optional[BaseMenu]): Parent menu reference.
+        """
+        super().__init__(
+            gateway,
+            project,
+            parent_menu,
+            title=f"Select a Task of Project '{project.detail.title}' to Modify"
+        )
 
     def _open_modify(self, task: Task) -> None:
+        """Open modification menu for a task.
+
+        Args:
+            task (Task): Selected task for modification.
+        """
         TaskModifyMenu(self._gateway, self._project, task, parent_menu=self).run()
 
     def _get_entity_name(self) -> str:
+        """Return entity name."""
         return "Task"

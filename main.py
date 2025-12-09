@@ -3,7 +3,17 @@ from bootstrap.runners import ApplicationRunners
 
 
 def main(use_cli: bool = False) -> None:
-    """Entry point for running CLI or API."""
+    """Main entry to run CLI or API based on flag."""
+    """
+    Args:
+        use_cli (bool): Flag determining whether CLI or API should run.
+
+    Returns:
+        None: No return value.
+
+    Raises:
+        Exception: Raised if initialization or runner execution fails.
+    """
     bootstrap = ApplicationBootstrap()
     config, db, manager = bootstrap.initialize()
 

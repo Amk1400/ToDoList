@@ -15,10 +15,18 @@ from service.scheduler.task_scheduler import TaskScheduler
 
 
 class ApplicationBootstrap:
-    """Handles application initialization."""
+    """Handles application initialization.
+
+    Attributes:
+        None
+    """
 
     def initialize(self) -> Tuple[AppConfig, Any, ProjectManager]:
-        """Initializes configuration, database, scheduler, and manager."""
+        """Initialize configuration, database, scheduler, and manager.
+
+        Returns:
+            Tuple[AppConfig, Any, ProjectManager]: Configuration, database, and project manager instances.
+        """
         config = self._load_config()
         db = self._create_database(config=config)
         self._create_scheduler(db=db)
@@ -27,7 +35,11 @@ class ApplicationBootstrap:
 
     @staticmethod
     def _load_config() -> AppConfig:
-        """Loads environment variables and builds configuration."""
+        """Load environment variables and build application configuration.
+
+        Returns:
+            AppConfig: Application configuration instance.
+        """
         load_dotenv()
         return AppConfig(
             max_projects=int(os.getenv("MAX_NUMBER_OF_PROJECT", "10")),
@@ -46,7 +58,14 @@ class ApplicationBootstrap:
 
     @staticmethod
     def _create_database(config: AppConfig) -> Any:
-        """Creates a database instance based on configuration."""
+        """Create a database instance based on configuration.
+
+        Args:
+            config (AppConfig): Application configuration.
+
+        Returns:
+            Any: Initialized database instance.
+        """
         if config.db_type.lower() == "postgres":
             url = (
                 f"postgresql://{config.db_user}:{config.db_password}"
@@ -57,7 +76,14 @@ class ApplicationBootstrap:
 
     @staticmethod
     def _create_scheduler(db: Any) -> None:
-        """Creates and starts the task scheduler."""
+        """Create and start the background task scheduler.
+
+        Args:
+            db (Any): Database dependency.
+
+        Returns:
+            None: No value is returned.
+        """
         project_repo = ProjectRepository(db)
         task_repo = TaskRepository(db)
         closer = TaskCloser(project_repo=project_repo, task_repo=task_repo)

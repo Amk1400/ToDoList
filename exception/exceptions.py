@@ -1,3 +1,6 @@
+from models.models import Status
+
+
 class ValidationError(ValueError):
     """Base validation failure."""
     pass
@@ -45,9 +48,9 @@ class InvalidChoiceError(ValidationError):
 class InvalidStatusError(ValidationError):
     """Status is not allowed."""
 
-    def __init__(self, allowed: list[str]) -> None:
-        message = f"Status must be one of: {', '.join(allowed)}."
-        super().__init__(message)
+    def __init__(self, allowed: list[Status]) -> None:
+        choices = ", ".join(s.value for s in allowed)
+        super().__init__(f"Status must be one of: {choices}.")
 
 
 class InvalidDateError(ValidationError):

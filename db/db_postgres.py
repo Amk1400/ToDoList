@@ -60,7 +60,7 @@ class PostgresDatabase(DatabaseInterface[T]):
         self._projects.clear()
         with self._db_session.get_session() as session:
             loaded = self._project_entity.load_all(session)
-            loaded.sort(key=lambda p: p._id)
+            loaded.sort(key=lambda p: p.id)
             self._projects.extend(loaded)
 
     def _find_project_model(self, project: Project) -> Project:

@@ -1,6 +1,6 @@
 from typing import List, Optional, TypeVar
 from datetime import date
-from models.models import Project, Task, Detail
+from models.models import Project, Task, Detail, Status
 from db.db_interface import DatabaseInterface
 
 T = TypeVar("T", Project, Task)
@@ -94,14 +94,14 @@ class InMemoryDatabase(DatabaseInterface[T]):
         project1 = Project(
             detail=Detail("Project A", "Demo project A"),
             tasks=[
-                Task(detail=Detail("Task A1", "First task of A"), deadline=date(2025, 1, 10), status="todo")
+                Task(detail=Detail("Task A1", "First task of A"), deadline=date(2025, 1, 10), status=Status.TODO)
             ],
         )
         project2 = Project(
             detail=Detail("Project B", "Demo project B"),
             tasks=[
-                Task(detail=Detail("Task B1", "First task of B"), deadline=date(2025, 2, 15), status="doing"),
-                Task(detail=Detail("Task B2", "Second task of B"), deadline=date(2025, 3, 20), status="todo"),
+                Task(detail=Detail("Task B1", "First task of B"), deadline=date(2025, 2, 15), status=Status.DOING),
+                Task(detail=Detail("Task B2", "Second task of B"), deadline=date(2025, 3, 20), status=Status.DONE),
             ],
         )
         self._projects = [project1, project2]

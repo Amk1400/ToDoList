@@ -1,5 +1,5 @@
 from typing import List, Optional
-from models.models import Project, Detail
+from models.models import Project
 from repository.entity_repository import EntityRepository
 
 class ProjectRepository(EntityRepository[Project]):

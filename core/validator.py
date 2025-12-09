@@ -10,6 +10,7 @@ from exception.exceptions import (
     InvalidStatusError,
     InvalidDateError, MaxCountError,
 )
+from models.models import Status
 
 
 class BaseValidator(ABC):
@@ -65,7 +66,7 @@ class NumberChoiceValidator(BaseValidator):
         self._min = min_value
         self._max = max_value
 
-    def validate(self, value: int) -> int:
+    def validate(self, value: int) -> None:
         if value is None or str(value).strip() == "":
             raise EmptyValueError("choice")
 
@@ -75,22 +76,22 @@ class NumberChoiceValidator(BaseValidator):
         if not (self._min <= value <= self._max):
             raise InvalidChoiceError(self._min, self._max)
 
-        return value
-
 
 class StatusValidator(BaseValidator):
-    ALLOWED_STATUSES = {"todo", "doing", "done"}
+    ALLOWED_STATUSES = [Status.TODO, Status.DOING, Status.DONE]
 
-    def validate(self, value: Optional[str]) -> Optional[str]:
-        if not value or not value.strip():
+    def validate(self, value: Optional[str]) -> Optional[Status]:
+        if value is None or not value.strip():
             return None
 
-        normalized = value.strip().lower()
+        raw = value.strip().lower()
 
-        if normalized not in self.ALLOWED_STATUSES:
-            raise InvalidStatusError(list(self.ALLOWED_STATUSES))
+        try:
+            status = Status(raw)
+        except ValueError:
+            raise InvalidStatusError(self.ALLOWED_STATUSES)
 
-        return normalized
+        return status
 
 
 class DeadlineValidator(BaseValidator):

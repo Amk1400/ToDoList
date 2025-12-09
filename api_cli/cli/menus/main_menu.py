@@ -22,5 +22,6 @@ class MainMenu(BaseMenu):
     def _open_project_menu(self) -> None:
         ProjectManagementMenu(self._project_gateway, parent_menu=self).run()
 
-    def _exit_program(self) -> None:
+    @staticmethod
+    def _exit_program() -> None:
         print("👋 Exiting application...")

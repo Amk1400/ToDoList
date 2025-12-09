@@ -47,7 +47,8 @@ class BaseMenu(ABC):
         for idx, option in enumerate(self._options, start=1):
             print(f"{idx}. {option.title}")
 
-    def handle_exception(self, error: Exception, callback: Optional[Callable[[], None]] = None) -> None:
+    @staticmethod
+    def handle_exception(error: Exception, callback: Optional[Callable[[], None]] = None) -> None:
         """Print error and optionally execute callback."""
         print(f"❌ Error: {error}")
         if callback:

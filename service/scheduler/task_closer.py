@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 from repository.project_repository import ProjectRepository
 from repository.task_repository import TaskRepository
-from models.models import Project, Task
+from models.models import Project, Task, Status
 
 
 class TaskCloser:
@@ -25,7 +25,7 @@ class TaskCloser:
                     new_task = Task(
                         detail=task.detail,
                         deadline=task.deadline,
-                        status="done",
+                        status=Status.DONE,
                         closed_at = now
                     )
                     setattr(new_task, "closed_at", datetime.now())

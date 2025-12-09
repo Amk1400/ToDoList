@@ -43,7 +43,8 @@ class EntityManager(ABC, Generic[T]):
     def _remove_from_repository(self, entity: T, parent_project: Optional[Project] = None) -> None:
         raise NotImplementedError
 
-    def _update_detail_by_repo(self, entity: T, detail: Detail) -> None:
+    @staticmethod
+    def _update_detail_by_repo(entity: T, detail: Detail) -> None:
         entity.detail = detail
 
     @abstractmethod

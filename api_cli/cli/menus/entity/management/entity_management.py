@@ -4,8 +4,8 @@ from api_cli.cli.menus.base_menu import BaseMenu
 from api_cli.gateway.entity_gateway import EntityGateway
 from models.models import Option, Project
 
-# Generic type برای Gateway
 TGateway = TypeVar("TGateway", bound=EntityGateway)
+
 
 class EntityManagementMenu(BaseMenu, Generic[TGateway]):
     """Base menu for entity management (projects or tasks)."""

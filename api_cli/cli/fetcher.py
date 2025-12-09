@@ -36,7 +36,7 @@ class CliFetcher:
     def fetch_title(self, current_title: Optional[str] = None) -> str:
         """Fetch title and validate via manager, skipping current title if editing."""
 
-        def validator_wrapper(value: str) -> str:
+        def validator_wrapper(value: str) -> None:
             return self._manager.validate_title(value, skip_current=current_title)
 
         return _fetch_with_retry(
@@ -78,7 +78,8 @@ class CliFetcher:
             validator=self._manager.validate_status
         )
 
-    def fetch_numeric_option(self, num_options: int, prompt: str = "Choose an option: ") -> int:
+    @staticmethod
+    def fetch_numeric_option(num_options: int, prompt: str = "Choose an option: ") -> int:
         """Fetch numeric menu choice using NumberChoiceValidator directly."""
         from core.validator import NumberChoiceValidator  # فقط برای NumericOption
 

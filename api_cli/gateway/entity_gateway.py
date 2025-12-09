@@ -41,9 +41,9 @@ class EntityGateway(ABC, Generic[T]):
     def delete_entity(self, entity: T) -> None:
         self._manager.remove_entity_object(entity)
 
-    def _fetch_detail(self, curret_title: Optional[str] = None) -> Detail:
+    def _fetch_detail(self, current_title: Optional[str] = None) -> Detail:
         return Detail(
-            title=self._fetcher.fetch_title(curret_title),
+            title=self._fetcher.fetch_title(current_title),
             description=self._fetcher.fetch_description()
         )
 

@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import date
-from typing import List, Callable, Optional, Literal
+from enum import Enum
+from typing import List, Callable, Optional
 
 
 @dataclass
@@ -21,11 +22,16 @@ class Entity:
         return self._id
 
 
+class Status(Enum):
+    TODO = "todo"
+    DOING = "doing"
+    DONE = "done"
+
 @dataclass
 class Task(Entity):
     """Project task item."""
     deadline: date
-    status: Literal["todo", "doing", "done"] = "todo"
+    status: Status= "todo"
     closed_at: Optional[date] = None
 
     def __str__(self) -> str:

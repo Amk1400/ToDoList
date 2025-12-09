@@ -1,13 +1,26 @@
 from fastapi import APIRouter
+from service.project_manager import ProjectManager
 
-root_router = APIRouter()
+from .controllers.projects.controller import ProjectsController
+from .controllers.tasks.controller import TasksController
 
-# create shared ProjectManager instance if needed for router
-# in your main.py we already inject managers; here is an example if needed standalone
-# project_manager = ProjectManager(config, db)
 
-# Example usage if needed standalone (replace with dependency injection in main)
-# project_controller = ProjectController(project_manager)
-# task_controller = TaskController(project_manager)
-# root_router.include_router(project_controller.router)
-# root_router.include_router(task_controller.router)
+def get_api_router(manager: ProjectManager) -> APIRouter:
+    """Return a central APIRouter with all project and task routers mounted.
+
+    Args:
+        manager (ProjectManager): Injected project manager.
+    Returns:
+        APIRouter: Combined API router.
+    """
+    router = APIRouter()
+
+    # Create controllers
+    projects_controller = ProjectsController(manager)
+    tasks_controller = TasksController(manager)
+
+    # Include their routers
+    router.include_router(projects_controller.router)
+    router.include_router(tasks_controller.router)
+
+    return router

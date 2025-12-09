@@ -1,19 +1,32 @@
 from abc import abstractmethod
 from typing import TypeVar, Generic
+
 from api_cli.cli.menus.base_menu import BaseMenu
 from api_cli.gateway.entity_gateway import EntityGateway
 from models.models import Option
 
 G = TypeVar("G", bound=EntityGateway)
 
+
 class EntityModifyMenu(BaseMenu, Generic[G]):
-    def __init__(self, gateway: G, manager, entity, parent_menu=None):
+    """Base entity modification menu."""
+
+    def __init__(self, gateway: G, manager, entity, parent_menu=None) -> None:
+        """Initialize entity modify menu.
+
+        Args:
+            gateway (G): Entity gateway.
+            manager: Manager instance or parent entity.
+            entity: Selected entity to modify.
+            parent_menu (BaseMenu): Parent menu reference.
+        """
         self._gateway: G = gateway
         self._manager = manager
         self._entity = entity
         super().__init__("Modify Entity", parent_menu)
 
     def _edit_entity(self) -> None:
+        """Edit selected entity."""
         try:
             self._gateway.edit_entity(self._entity)
             print(f"✅{self._entity.detail.title} Updated successfully.")
@@ -22,6 +35,7 @@ class EntityModifyMenu(BaseMenu, Generic[G]):
         self._go_back()
 
     def delete_entity(self) -> None:
+        """Delete selected entity."""
         try:
             self._gateway.delete_entity(self._entity)
             print(f"✅{self._entity.detail.title} Deleted successfully.")
@@ -30,10 +44,12 @@ class EntityModifyMenu(BaseMenu, Generic[G]):
         self._go_back()
 
     def _setup_core_options(self) -> None:
+        """Configure edit/delete options."""
         self.add_option(Option("Edit", self._edit_entity))
         self.add_option(Option("Delete", self.delete_entity))
         self._add_show_tasks_option()
 
     @abstractmethod
     def _add_show_tasks_option(self):
+        """Add task or child-entity display option."""
         raise NotImplementedError

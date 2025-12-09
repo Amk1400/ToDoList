@@ -1,15 +1,15 @@
-from datetime import date, datetime
-from typing import Optional, Literal
-
-from pydantic import BaseModel, Field, validator
+from datetime import date
+from typing import Optional
+from pydantic import BaseModel, Field
 
 from api_cli.api.schemas.detail_schema import DetailSchema
+from models.models import Status
 
 
 class TaskRequest(BaseModel):
     """Task input schema."""
     detail: DetailSchema
-    status: Optional[Literal["todo", "doing", "done"]] = Field(
+    status: Optional[Status] = Field(
         None, description="Task status; must be one of 'todo', 'doing', 'done' default is last value"
     )
     deadline: date = Field(
@@ -19,7 +19,7 @@ class TaskRequest(BaseModel):
 
 class TaskCreate(TaskRequest):
     """Task creation input."""
-    status: Optional[Literal["todo", "doing", "done"]] = Field(
+    status: Optional[Status] = Field(
         "todo", description="Task status; must be one of 'todo', 'doing', 'done'; default is 'todo'"
     )
 

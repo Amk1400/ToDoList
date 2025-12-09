@@ -1,28 +1,28 @@
 from abc import abstractmethod
 from typing import Optional, TypeVar, Generic
+
 from api_cli.cli.menus.base_menu import BaseMenu
 from api_cli.gateway.entity_gateway import EntityGateway
 from models.models import Option, Project
 
-# Generic type برای Gateway
 TGateway = TypeVar("TGateway", bound=EntityGateway)
 
+
 class EntityManagementMenu(BaseMenu, Generic[TGateway]):
-    """Base menu for entity management (projects or tasks)."""
+    """Entity management base menu."""
 
     def __init__(
-        self,
-        gateway: TGateway,
-        project: Optional[Project] = None,
-        parent_menu: Optional[BaseMenu] = None,
+            self,
+            gateway: TGateway,
+            project: Optional[Project] = None,
+            parent_menu: Optional[BaseMenu] = None,
     ) -> None:
-        """
-        Initialize entity management menu.
+        """Initialize entity management menu.
 
         Args:
-            gateway (TGateway): Gateway instance (ProjectGateway or TaskGateway).
+            gateway (TGateway): Gateway instance.
             project (Optional[Project]): Parent project if managing tasks.
-            parent_menu (Optional[BaseMenu]): Parent menu for navigation.
+            parent_menu (Optional[BaseMenu]): Parent menu reference.
         """
         self._gateway: TGateway = gateway
         self._project: Optional[Project] = project
@@ -30,6 +30,7 @@ class EntityManagementMenu(BaseMenu, Generic[TGateway]):
         super().__init__(f"{self._entity_type} Management", parent_menu)
 
     def _setup_core_options(self) -> None:
+        """Configure management options."""
         self.add_option(
             Option(f"Show & Modify {self._entity_type}s", self._show_and_modify)
         )
@@ -37,10 +38,11 @@ class EntityManagementMenu(BaseMenu, Generic[TGateway]):
 
     @abstractmethod
     def _show_and_modify(self) -> None:
-        """Open the appropriate show/modify menu."""
+        """Open entity show/modify menu."""
         raise NotImplementedError("Override this method in subclass")
 
     def _create_entity(self) -> None:
+        """Create new entity and reload menu."""
         try:
             self._gateway.create_entity()
             print(f"✅ {self._entity_type} created successfully.")

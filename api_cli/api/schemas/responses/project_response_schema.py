@@ -1,6 +1,6 @@
 from typing import Optional
-
 from pydantic import BaseModel
+
 from api_cli.api.schemas.detail_schema import DetailSchema
 
 

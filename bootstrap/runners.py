@@ -5,8 +5,8 @@ from fastapi import FastAPI
 from uvicorn import run
 from api_cli.gateway.project_gateway import ProjectGateway
 from api_cli.cli.menus.main_menu import MainMenu
-from api_cli.api.controllers.project_controller import ProjectController
-from api_cli.api.controllers.task_controller import TaskController
+from api_cli.api.controllers.projects.controller import ProjectController
+from api_cli.api.controllers.tasks.controller import TaskController
 from core.config import AppConfig
 from service.project_manager import ProjectManager
 

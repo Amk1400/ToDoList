@@ -19,7 +19,10 @@ class TaskController:
 
     def _get_task_manager(self, project_id: int) -> TaskManager:
         projects = self._project_manager.get_repo_list()
-        project = next((p for p in projects if p.id == project_id), None)
+        project = None
+        for p in projects:
+            if p.id == project_id:
+                project = p
         if not project:
             raise HTTPException(404, "Project not found")
         return self._project_manager.get_task_manager(project)
@@ -41,7 +44,7 @@ class TaskController:
                     TaskResponse(
                         id=t.id,
                         project_id=manager.get_parent_project().id,
-                        detail=DetailSchema(t.detail),
+                        detail=DetailSchema.from_detail(t.detail),
                         status=t.status,
                         deadline=t.deadline,
                         closed_at=t.closed_at
@@ -67,7 +70,7 @@ class TaskController:
             return TaskResponse(
                 id=task.id,
                 project_id=manager.get_parent_project().id,
-                detail=DetailSchema(task.detail),
+                detail=DetailSchema.from_detail(task.detail),
                 status=task.status,
                 deadline=task.deadline,
                 closed_at=task.closed_at
@@ -89,7 +92,7 @@ class TaskController:
                 return TaskResponse(
                     id=new_task.id,
                     project_id=manager.get_parent_project().id,
-                    detail=DetailSchema(new_task.detail),
+                    detail=DetailSchema.from_detail(new_task.detail),
                     status=new_task.status,
                     deadline=new_task.deadline
                 )
@@ -123,9 +126,10 @@ class TaskController:
                 return TaskResponse(
                     id=updated_task.id,
                     project_id=manager.get_parent_project().id,
-                    detail=DetailSchema(updated_task.detail),
+                    detail=DetailSchema.from_detail(updated_task.detail),
                     status=updated_task.status,
-                    deadline=updated_task.deadline
+                    deadline=updated_task.deadline,
+                    closed_at=old.closed_at
                 )
             except ValueError as exc:
                 raise HTTPException(400, str(exc))

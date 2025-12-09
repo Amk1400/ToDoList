@@ -8,7 +8,9 @@ class DetailSchema(BaseModel):
     title: str = Field(..., description="Title of the entity must be unique (length constraints in Service layer)")
     description: str = Field(..., description="Description of the entity (length constraints in Service layer)")
 
-    def __init__(self, detail: Detail):
-        super().__init__()
-        self.title = detail.title
-        self.description = detail.description
+    @classmethod
+    def from_detail(cls, detail: Detail) -> DetailSchema:
+        return cls(
+            title=detail.title,
+            description=detail.description
+        )

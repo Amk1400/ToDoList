@@ -6,7 +6,7 @@ from api_cli.api.schemas.detail_schema import DetailSchema
 
 class TaskResponse(BaseModel):
     """Task response output."""
-    id: int
+    id: Optional[int]
     project_id: int
     detail: DetailSchema
     status: Optional[Literal["todo", "doing", "done"]] = (

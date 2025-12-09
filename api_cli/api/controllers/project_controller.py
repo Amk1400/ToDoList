@@ -17,7 +17,10 @@ class ProjectController:
         self._register()
 
     def _get_project(self, project_id: int) -> Project:
-        project = next((p for p in self._manager.get_repo_list() if p.id == project_id), None)
+        project = None
+        for p in self._manager.get_repo_list():
+            if p.id == project_id:
+                project = p
         if not project:
             raise HTTPException(404, "Project not found")
         return project
@@ -33,7 +36,9 @@ class ProjectController:
                 projects = self._manager.get_repo_list()
                 if not projects:
                     return None
-                return [ProjectResponse(id=p.id, detail=DetailSchema(p.detail)) for p in projects]
+                for p in projects:
+                    print(type(p.detail))
+                return [ProjectResponse(id=p.id, detail=DetailSchema.from_detail(p.detail)) for p in projects]
             except Exception as exc:
                 raise HTTPException(500, str(exc))
 
@@ -45,11 +50,11 @@ class ProjectController:
         )
         def get_project(project_id: int):
             project = self._get_project(project_id)
-            return ProjectResponse(id=project.id, detail=DetailSchema(project.detail))
+            return ProjectResponse(id=project.id, detail=DetailSchema.from_detail(project.detail))
 
         @self.router.post(
             "/",
-            response_model=ProjectResponse,
+            response_model=Project,
             responses={400: {"description": "Invalid input"},
                        500: {"description": "Internal server error"}},
         )
@@ -58,7 +63,7 @@ class ProjectController:
                 detail = Detail(data.detail.title, data.detail.description)
                 self._manager.add_entity(detail)
                 new_project = self._manager.get_repo_list()[-1]
-                return ProjectResponse(id=new_project.id, detail=DetailSchema(new_project.detail))
+                return ProjectResponse(id=new_project.id, detail=DetailSchema.from_detail(new_project.detail))
             except ValueError as exc:
                 raise HTTPException(400, str(exc))
             except Exception as exc:
@@ -77,7 +82,7 @@ class ProjectController:
                 detail = Detail(data.detail.title, data.detail.description)
                 updated = self._manager.create_entity_object(detail)
                 self._manager.update_entity_object(old, updated)
-                return ProjectResponse(id=old.id, detail=DetailSchema(old.detail))
+                return ProjectResponse(id=old.id, detail=DetailSchema.from_detail(old.detail))
             except ValueError as exc:
                 raise HTTPException(400, str(exc))
             except Exception as exc:

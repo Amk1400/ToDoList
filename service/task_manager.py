@@ -4,7 +4,8 @@ from core.config import AppConfig
 from models.models import Detail, Task, Project, Status
 from repository.task_repository import TaskRepository
 from service.entity_manager import EntityManager
-from core.validator import StatusValidator, DeadlineValidator
+from service.validators import Validators
+
 
 class TaskManager(EntityManager[Task]):
     """Manager for task-level operations."""
@@ -22,16 +23,14 @@ class TaskManager(EntityManager[Task]):
     def entity_name(self) -> str:
         return "Task"
 
-    def create_entity_object(self, detail: Detail, deadline: Optional[date] = None,
-                             status: Optional[Status] = Status.TODO) -> Task:
+    def create_entity_object(self, detail: Detail, deadline: Optional[date] = None, status: Optional[Status] = Status.TODO) -> Task:
         return Task(detail=detail, deadline=deadline, status=status)
 
-    def _update_deadline_and_status_by_repo(self, deadline: Optional[date], entity: Task,
-                                            status: Optional[str]):
+    def _update_deadline_and_status_by_repo(self, deadline: Optional[date], entity: Task, status: Optional[str]):
         if deadline is not None:
             entity.deadline = deadline
         if status is not None:
-            entity.status = self.validate_status(status)
+            entity.status = Validators.validate_status(status)
 
     def _get_max_desc_length(self) -> int:
         return self._config.max_task_description_length
@@ -43,20 +42,7 @@ class TaskManager(EntityManager[Task]):
         return self._config.max_tasks
 
     def remove_entity_object(self, entity: Task) -> None:
-        """Remove entity and handle cascade deletes if needed."""
         self._remove_from_repository(entity, self._parent_project)
-
-    # ---------- Validators ----------
-
-    @staticmethod
-    def validate_status(status: str) -> Status:
-        validator = StatusValidator()
-        return validator.validate(status)
-
-    @staticmethod
-    def validate_deadline(deadline: date) -> None:
-        validator = DeadlineValidator()
-        validator.validate(deadline)
 
     def get_repo_list(self) -> List[Task]:
         if self._parent_project is None:
